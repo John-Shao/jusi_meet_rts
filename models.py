@@ -1,31 +1,46 @@
-from enum import Enum
+from enum import IntEnum
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 
+# 用户角色枚举
+class UserRole(IntEnum):
+    VISITOR = 0
+    HOST = 1
+
 # 设备状态枚举
-class DeviceState(int, Enum):
+class DeviceState(IntEnum):
     CLOSED = 0
     OPEN = 1
 
 # 权限枚举
-class Permission(int, Enum):
+class Permission(IntEnum):
     NO_PERMISSION = 0
     HAS_PERMISSION = 1
 
+# 房间内是否全体静音
+class RoomMicStatus(IntEnum):
+    ALL_MUTED = 0
+    ALLOW_MIC = 1
+
+# 房间内是否正在录制
+class RecordStatus(IntEnum):
+    NOT_RECORDING = 0
+    RECORDING = 1
+
 # 共享类型枚举
-class ShareType(int, Enum):
+class ShareType(IntEnum):
     SCREEN = 0
     BOARD = 1
 
-# 静默状态枚举
-class Silence(int, Enum):
+# 房间内是否正在共享
+class ShareStatus(IntEnum):
+    NOT_SHARING = 0
+    SHARING = 1
+
+# 是否静默用户，云录屏用户是静默用户，其它用户不是静默用户
+class Silence(IntEnum):
     NOT_SILENT = 0
     SILENCE = 1
-
-# 用户角色枚举
-class UserRole(int, Enum):
-    VISITOR = 0
-    HOST = 1
 
 # RTS消息基础模型
 class RTSMessage(BaseModel):

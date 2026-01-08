@@ -20,6 +20,7 @@ async def handle_rts_message(request: Request):
         logger.debug(f"收到 RTS 消息: {request_data}")
         
         # 处理嵌套的JSON结构
+        message_data = {}
         if "message" in request_data:
             # message字段本身是JSON字符串，需要再次解析
             message_data = json.loads(request_data["message"])
@@ -35,6 +36,7 @@ async def handle_rts_message(request: Request):
             # 兼容原来的直接结构
             event_name = request_data.get("event_name")
             content = request_data.get("content", {})
+            message_data = request_data
             
         if not event_name:
             return BaseResponse(code=400, message="Missing event_name")
@@ -43,61 +45,44 @@ async def handle_rts_message(request: Request):
         return BaseResponse(code=400, message="Invalid JSON format")
     
     logger.debug(f"事件名称: {event_name}, 事件内容: {content}")
-    
+
     # 根据不同的事件名称处理不同的消息
-    if event_name == "vcJoinRoom":
-        return await handle_join_room(content)
-    elif event_name == "vcLeaveRoom":
-        return await handle_leave_room(content)
-    elif event_name == "vcFinishRoom":
-        return await handle_finish_room(content)
-    elif event_name == "vcResync":
-        return await handle_resync(content)
-    elif event_name == "vcGetUserList":
-        return await handle_get_user_list(content)
-    elif event_name == "vcOperateSelfCamera":
-        return await handle_operate_self_camera(content)
-    elif event_name == "vcOperateSelfMic":
-        return await handle_operate_self_mic(content)
-    elif event_name == "vcOperateSelfMicApply":
-        return await handle_operate_self_mic_apply(content)
-    elif event_name == "vcStartShare":
-        return await handle_start_share(content)
-    elif event_name == "vcFinishShare":
-        return await handle_finish_share(content)
-    elif event_name == "vcSharePermissionApply":
-        return await handle_share_permission_apply(content)
-    elif event_name == "vcOperateOtherCamera":
-        return await handle_operate_other_camera(content)
-    elif event_name == "vcOperateOtherMic":
-        return await handle_operate_other_mic(content)
-    elif event_name == "vcOperateOtherSharePermission":
-        return await handle_operate_other_share_permission(content)
-    elif event_name == "vcOperateAllMic":
-        return await handle_operate_all_mic(content)
-    elif event_name == "vcOperateSelfMicPermit":
-        return await handle_operate_self_mic_permit(content)
-    elif event_name == "vcSharePermissionPermit":
-        return await handle_share_permission_permit(content)
+    handler = EVENT_HANDLERS.get(event_name)
+    if handler:
+        return await handler(content)
     else:
         return BaseResponse(code=400, message=f"Unknown event: {event_name}")
 
 # 处理加入房间
-async def handle_join_room(content: Dict):
+async def handle_join_room(content: Dict, request_data: Dict = None):
     meeting_service = MeetingService()
     user_service = UserService()
     
-    # 解析参数
+    # 从request_data提取顶层字段
+    app_id = request_data.get("app_id") if request_data else None
+    room_id = request_data.get("room_id") if request_data else None
+    device_id = request_data.get("device_id") if request_data else None
+    user_id = request_data.get("user_id") if request_data else None
+    login_token = request_data.get("login_token") if request_data else None
+    request_id = request_data.get("request_id") if request_data else None
+    
+    # 解析content中的参数
     user_name = content.get("user_name")
     camera = DeviceState(content.get("camera", 0))
     mic = DeviceState(content.get("mic", 0))
     is_silence = Silence(content.get("is_silence", 0)) if content.get("is_silence") else None
     
     # 创建用户
-    user = await user_service.create_user(user_name, camera, mic, is_silence)
+    user = await user_service.create_user(user_id, user_name, camera, mic, is_silence, device_id)
     
     # 加入房间
-    join_result = await meeting_service.join_room(user)
+    join_result = await meeting_service.join_room(
+        user=user,
+        room_id=room_id,
+        app_id=app_id,
+        login_token=login_token,
+        request_id=request_id
+    )
     
     return BaseResponse(data=join_result.model_dump())
 
@@ -255,3 +240,25 @@ async def handle_share_permission_permit(content: Dict):
     await meeting_service.permit_share_apply(apply_user_id, permit)
     
     return BaseResponse()
+
+
+# 处理程序映射
+EVENT_HANDLERS = {
+    "vcJoinRoom": handle_join_room,
+    "vcLeaveRoom": handle_leave_room,
+    "vcFinishRoom": handle_finish_room,
+    "vcResync": handle_resync,
+    "vcGetUserList": handle_get_user_list,
+    "vcOperateSelfCamera": handle_operate_self_camera,
+    "vcOperateSelfMic": handle_operate_self_mic,
+    "vcOperateSelfMicApply": handle_operate_self_mic_apply,
+    "vcStartShare": handle_start_share,
+    "vcFinishShare": handle_finish_share,
+    "vcSharePermissionApply": handle_share_permission_apply,
+    "vcOperateOtherCamera": handle_operate_other_camera,
+    "vcOperateOtherMic": handle_operate_other_mic,
+    "vcOperateOtherSharePermission": handle_operate_other_share_permission,
+    "vcOperateAllMic": handle_operate_all_mic,
+    "vcOperateSelfMicPermit": handle_operate_self_mic_permit,
+    "vcSharePermissionPermit": handle_share_permission_permit,
+}

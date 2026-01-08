@@ -7,9 +7,12 @@ class UserService:
     def __init__(self):
         self.users = {}  # 简单内存存储，实际项目中使用数据库
     
-    async def create_user(self, user_name: str, camera: DeviceState, 
-                         mic: DeviceState, is_silence: Optional[Silence] = None) -> MeetingUser:
-        user_id = str(uuid.uuid4())
+    async def create_user(self, user_id: str, user_name: str, camera: DeviceState, 
+                         mic: DeviceState, is_silence: Optional[Silence] = None,
+                         device_id: str = None) -> MeetingUser:
+        # 如果没有提供user_id，则生成一个
+        if not user_id:
+            user_id = str(uuid.uuid4())
         
         user = MeetingUser(
             user_id=user_id,

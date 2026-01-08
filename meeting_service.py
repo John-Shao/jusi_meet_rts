@@ -9,9 +9,9 @@ class MeetingService:
         self.rooms = {}  # 简单内存存储，实际项目中使用数据库
         self.user_service = UserService()
     
-    async def join_room(self, user: MeetingUser) -> JoinMeetingRoomRes:
-        # 创建或获取房间
-        room_id = "default_room"  # 简化处理，实际应动态生成或从参数获取
+    async def join_room(self, user: MeetingUser, room_id: str = None, app_id: str = None, 
+                        login_token: str = None, request_id: str = None) -> JoinMeetingRoomRes:
+            
         if room_id not in self.rooms:
             self.rooms[room_id] = MeetingRoomState(
                 room_id=room_id,
@@ -26,6 +26,8 @@ class MeetingService:
             user.user_role = UserRole.HOST
             room.start_time = int(time.time())
             room.status = 1
+        else:
+            user.user_role = UserRole.VISITOR
         
         # 获取房间用户列表
         user_list = await self.get_room_users(room_id)
