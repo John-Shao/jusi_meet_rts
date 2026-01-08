@@ -37,3 +37,7 @@ class RtsService:
     # 删除房间
     def delete_room(self, room_id: str):
         self.rooms.pop(room_id, None)
+
+
+# 创建服务实例
+service = RtsService()

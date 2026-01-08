@@ -121,6 +121,7 @@ class SharePermissionPermitPayload(BaseModel):
 
 
 # Response wrapper to match SendServerMessageRes<T>
+'''
 class SendServerMessageRes(BaseModel):
     message_type: str = Field('return', const=True)
     request_id: str
@@ -128,7 +129,7 @@ class SendServerMessageRes(BaseModel):
     message: str
     timestamp: int
     response: Optional[Any]
-
+'''
 
 # 加入房间响应
 class JoinMeetingRoomRes(BaseModel):

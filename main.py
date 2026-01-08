@@ -64,7 +64,7 @@ app.add_middleware(RequestLoggingMiddleware)
 # 注册路由
 app.include_router(router, prefix=settings.api_vstr, tags=["RTS"])
 
-# 根路径
+# 处理根路径请求
 @app.get("/")
 async def root():
     return {"message": "Meeting Room Server"}
