@@ -74,8 +74,21 @@ async def handle_join_room(message_data: Dict, content: Dict|str):
     mic = DeviceState(content.get("mic", 0))
 
 
+    # 创建用户对象
+    user = User(
+        user_id=user_id,
+        user_name=user_name,
+        room_id=room_id,
+        role=Role.Host,
 
-    service.join_room(user_id, room_id)
+
+        camera=camera,
+        mic=mic,
+        is_silence=None,
+        device_id=device_id
+    )
+    
+    service.join_room(user)
 
 
 
