@@ -65,22 +65,29 @@ class BaseResponse(BaseModel):
     message: str = "success"
     data: Optional[Dict] = None
 
-
-# Payloads for various events
-class JoinRoomPayload(BaseModel):
-    user_name: str
-    camera: DeviceState
-    mic: DeviceState
-    is_silence: Optional[Silence] = None
+# 音频属性信息
+class AudioPropertiesInfo(BaseModel):
+    linearVolume: int
+    nonlinearVolume: int
 
 # 会议房间状态
 class MeetingRoomState(BaseModel):
-    room_id: str
-    room_name: Optional[str] = None
-    create_time: int
-    start_time: Optional[int] = None
-    end_time: Optional[int] = None
-    status: int = 0  # 0: 未开始, 1: 进行中, 2: 已结束
+    app_id: Optional[str]
+    room_id: Optional[str]
+    room_name: Optional[str]
+    host_user_id: Optional[str]
+    host_user_name: Optional[str]
+    room_mic_status: DeviceState = RoomMicStatus.ALLOW_MIC               # 房间内是否全体静音
+    operate_self_mic_permission: Permission = Permission.HAS_PERMISSION  # 操作自己麦克风权限
+    share_status: ShareStatus = ShareStatus.NOT_SHARING                  # 房间内是否正在共享
+    share_type: Optional[ShareType]
+    share_user_id: Optional[str]
+    share_user_name: Optional[str]
+    start_time: int = 0       # 会议开始时间，时间戳，单位毫秒
+    base_time: Optional[int]  # 服务器时间，时间戳，单位毫秒
+    record_status: Optional[RecordStatus]   # 录制状态
+    record_start_time: Optional[int]        # 可选，最近一次开始录制的时间
+    activeSpeakers: List[str] = []          # 活动用户ID（user_id）列表    
 
 # 会议用户信息
 class MeetingUser(BaseModel):
@@ -90,46 +97,16 @@ class MeetingUser(BaseModel):
     camera: DeviceState
     mic: DeviceState
     join_time: int
-    share_permission: Permission
-    share_status: int = 0  # 0: 未共享, 1: 共享中
-    share_type: Optional[ShareType] = None
-    is_silence: Optional[Silence] = None
-    isLocal: Optional[bool] = False
-
-class OperateDevicePayload(BaseModel):
-    operate: DeviceState
-
-
-class OperateOtherDevicePayload(BaseModel):
-    operate_user_id: str
-    operate: DeviceState
-
-
-class OperateOtherSharePermissionPayload(BaseModel):
-    operate_user_id: str
-    operate: Permission
-
-
-class ApplyMicPermitPayload(BaseModel):
-    apply_user_id: str
-    permit: DeviceState
-
-
-class SharePermissionPermitPayload(BaseModel):
-    apply_user_id: str
-    permit: Permission
-
-
-# Response wrapper to match SendServerMessageRes<T>
-'''
-class SendServerMessageRes(BaseModel):
-    message_type: str = Field('return', const=True)
-    request_id: str
-    code: int
-    message: str
-    timestamp: int
-    response: Optional[Any]
-'''
+    room_id: str
+    share_permission: Permission = Permission.HAS_PERMISSION
+    share_status: ShareStatus = ShareStatus.NOT_SHARING
+    share_type: ShareType = ShareType.SCREEN
+    operate_camera_permission: Optional[Permission] = Permission.HAS_PERMISSION  # 操作自己摄像头权限
+    operate_mic_permission: Optional[Permission] = Permission.HAS_PERMISSION     # 操作自己麦克风权限
+    is_silence: Optional[Silence] = Silence.NOT_SILENT  # 是否静音
+    audioPropertiesInfo: Optional[AudioPropertiesInfo]
+    isLocal: Optional[bool]
+    isActive: Optional[bool]
 
 # 加入房间响应
 class JoinMeetingRoomRes(BaseModel):
@@ -140,14 +117,3 @@ class JoinMeetingRoomRes(BaseModel):
     wb_room_id: str
     wb_user_id: str
     wb_token: str
-
-# 重连响应
-class ReconnectRes(BaseModel):
-    room: MeetingRoomState
-    user: MeetingUser
-    user_list: List[MeetingUser]
-
-# 获取用户列表响应
-class GetUserListRes(BaseModel):
-    user_count: int
-    user_list: List[MeetingUser]

@@ -1,73 +1,72 @@
-
 import time
 from typing import Dict, Optional
 from schemas import *
 
 
-# 用户模型
-class UserInfo:
-    def __init__(self, user_id: str, nick_name: str, phone: str):
-        self.user_id = user_id
-        self.nick_name = nick_name
-        self.phone = phone
+# 会议用户
+class UserModel:
+    def __init__(self,
+            user_id: str,
+            user_name: str,
+            user_role: UserRole,
+            camera: DeviceState,
+            mic: DeviceState,
+            join_time: int,
+            room_id: str
+            ):
+        
+        self.user = MeetingUser(
+            user_id = user_id,
+            user_name = user_name,
+            user_role = user_role,
+            camera = camera,
+            mic = mic,
+            join_time = join_time,
+            room_id = room_id,
+        )
 
-
-    def to_dict(self):
-        return {
-            "user_id": self.user_id,
-            "user_name": self.user_name,
-            "room_id": self.room_id,
-            "user_role": self.user_role,
-            "camera": int(self.camera),
-            "mic": int(self.mic),
-            "share_permission": int(self.share_permission),
-            "share_status": int(self.share_status),
-            "share_type": int(self.share_type),
-            "is_silence": int(self.is_silence),
-            "join_time": self.join_time,
-        }
-
-
-class User:
-    def __init__(self, user_id: str, user_name: str):
-        self.user_id = user_id
-        self.user_name = user_name
-        self.room_id = ""
-        self.user_role = UserRole.VISITOR
-        self.camera = DeviceState.CLOSED
-        self.mic = DeviceState.CLOSED
-        self.share_permission = Permission.NO_PERMISSION
-        self.share_status = ShareStatus.NOT_SHARING
-        self.share_type = ShareType.SCREEN
-        self.is_silence = Silence.NOT_SILENT
-        self.join_time = int(time.time() * 1000)
+    def get_user_id(self):
+        return self.user.user_id
+    
+    def get_user_name(self):
+        return self.user.user_name
 
     def to_dict(self):
         return {
-            "user_id": self.user_id,
-            "user_name": self.user_name,
-            "room_id": self.room_id,
-            "user_role": self.user_role,
-            "camera": int(self.camera),
-            "mic": int(self.mic),
-            "share_permission": int(self.share_permission),
-            "share_status": int(self.share_status),
-            "share_type": int(self.share_type),
-            "is_silence": int(self.is_silence),
-            "join_time": self.join_time,
+            "user_id": self.user.user_id,
+            "user_name": self.user.user_name,
+            "user_role": int(self.user.user_role),
+            "camera": int(self.user.camera),
+            "mic": int(self.user.mic),
+            "join_time": self.user.join_time,
+            "room_id": self.user.room_id,
+            "share_permission": int(self.user.share_permission),
+            "share_status": int(self.user.share_status),
+            "share_type": int(self.user.share_type),
+            "operate_camera_permission": int(self.user.operate_camera_permission),
+            "operate_mic_permission": int(self.user.operate_mic_permission),
+            "is_silence": int(self.user.is_silence),
         }
 
 
 # 房间模型
-class Room:
-    def __init__(self, room_id: str, host_uid: Optional[str] = None):
-        self.room_id = room_id
-        self.host_user_id = host_uid
-        self.users: Dict[str, User] = {}
-        self.started_at = int(time.time() * 1000)
-        self.finished = False
-        self.finished_at = 0
-        self.sharing_user_id: Optional[str] = None
+class RoomModel:
+    def __init__(self,
+                 room_id: str,
+                 host: UserModel,
+                 ):
+        
+        self.room = MeetingRoomState(
+            room_id = room_id,
+            host_user_id = host.get_user_id(),
+            host_user_name = host.get_user_name(),
+            start_time = int(time.time() * 1000),
+            activeSpeakers = [host.get_user_id()],
+            )
+        
+        self.users = {host.get_user_id(): host}
+
+
 
     # 用户进入房间
     def add_user(self, user: User):

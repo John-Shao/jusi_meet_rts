@@ -3,7 +3,11 @@ from fastapi import APIRouter, Depends, Request
 import json
 from typing import Optional, Dict
 from schemas import *
-from models import User, Room
+from models import (
+    MeetingUser,
+    MeetingRoomState,
+    JoinMeetingRoomRes,
+    )
 from rts_service import service
 
 logger = logging.getLogger(__name__)
@@ -25,11 +29,11 @@ async def handle_rts_message(request: Request):
 
         # 不使用二进制消息
         if binary:
-            return BaseResponse(code=200, message="Binary message received")
+            return BaseResponse(code=400, message="Binary message received")
 
         # 验证签名（这里简单用字符串比较，实际应进行签名验证）
         if signature != "temp_server_signature":
-            return BaseResponse(code=403, message="Invalid signature")
+            return BaseResponse(code=401, message="Invalid signature")
 
         # 解析message字段
         message = json.loads(msg_str)
@@ -73,22 +77,7 @@ async def handle_join_room(message_data: Dict, content: Dict|str):
     camera = DeviceState(content.get("camera", 0))
     mic = DeviceState(content.get("mic", 0))
 
-
-    # 创建用户对象
-    user = User(
-        user_id=user_id,
-        user_name=user_name,
-        room_id=room_id,
-        role=Role.Host,
-
-
-        camera=camera,
-        mic=mic,
-        is_silence=None,
-        device_id=device_id
-    )
     
-    service.join_room(user)
 
 
 
