@@ -41,6 +41,7 @@ class Room:
         self.users: Dict[str, User] = {}
         self.started_at = int(time.time() * 1000)
         self.finished = False
+        self.finished_at = 0
         self.sharing_user_id: Optional[str] = None
 
     # 用户进入房间

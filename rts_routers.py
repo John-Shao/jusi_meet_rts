@@ -103,7 +103,7 @@ async def handle_finish_room(content: Dict):
     await meeting_service.finish_room(room_id)
     
     return BaseResponse()
-
+'''
 # 处理重连同步
 async def handle_resync(content: Dict):
     meeting_service = MeetingService()
@@ -240,25 +240,25 @@ async def handle_share_permission_permit(content: Dict):
     await meeting_service.permit_share_apply(apply_user_id, permit)
     
     return BaseResponse()
-
+'''
 
 # 处理程序映射
 EVENT_HANDLERS = {
     "vcJoinRoom": handle_join_room,
     "vcLeaveRoom": handle_leave_room,
     "vcFinishRoom": handle_finish_room,
-    "vcResync": handle_resync,
-    "vcGetUserList": handle_get_user_list,
-    "vcOperateSelfCamera": handle_operate_self_camera,
-    "vcOperateSelfMic": handle_operate_self_mic,
-    "vcOperateSelfMicApply": handle_operate_self_mic_apply,
-    "vcStartShare": handle_start_share,
-    "vcFinishShare": handle_finish_share,
-    "vcSharePermissionApply": handle_share_permission_apply,
-    "vcOperateOtherCamera": handle_operate_other_camera,
-    "vcOperateOtherMic": handle_operate_other_mic,
-    "vcOperateOtherSharePermission": handle_operate_other_share_permission,
-    "vcOperateAllMic": handle_operate_all_mic,
-    "vcOperateSelfMicPermit": handle_operate_self_mic_permit,
-    "vcSharePermissionPermit": handle_share_permission_permit,
+    # "vcResync": handle_resync,
+    # "vcGetUserList": handle_get_user_list,
+    # "vcOperateSelfCamera": handle_operate_self_camera,
+    # "vcOperateSelfMic": handle_operate_self_mic,
+    # "vcOperateSelfMicApply": handle_operate_self_mic_apply,
+    # "vcStartShare": handle_start_share,
+    # "vcFinishShare": handle_finish_share,
+    # "vcSharePermissionApply": handle_share_permission_apply,
+    # "vcOperateOtherCamera": handle_operate_other_camera,
+    # "vcOperateOtherMic": handle_operate_other_mic,
+    # "vcOperateOtherSharePermission": handle_operate_other_share_permission,
+    # "vcOperateAllMic": handle_operate_all_mic,
+    # "vcOperateSelfMicPermit": handle_operate_self_mic_permit,
+    # "vcSharePermissionPermit": handle_share_permission_permit,
 }
