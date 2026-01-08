@@ -2,7 +2,7 @@ import logging
 from fastapi import APIRouter, Depends, Request
 import json
 from typing import Optional, Dict
-from models import *
+from schemas import *
 from meeting_service import MeetingService
 from user_service import UserService
 
