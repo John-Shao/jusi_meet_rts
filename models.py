@@ -1,37 +1,44 @@
 import time
-from typing import Dict, Optional
+from typing import Dict, Optional, OrderedDict
 from schemas import *
-
 
 # 会议用户
 class UserModel:
     def __init__(self,
             user_id: str,
             user_name: str,
-            user_role: UserRole,
+            device_id: str,
             camera: DeviceState,
             mic: DeviceState,
-            join_time: int,
-            room_id: str
             ):
-        
         self.user = MeetingUser(
             user_id = user_id,
             user_name = user_name,
-            user_role = user_role,
+            device_id = device_id,
             camera = camera,
             mic = mic,
-            join_time = join_time,
-            room_id = room_id,
         )
 
-    def get_user_id(self):
+    # 获取用户ID
+    def get_user_id(self) -> str:
         return self.user.user_id
     
-    def get_user_name(self):
+    # 获取用户名
+    def get_user_name(self) -> str:
         return self.user.user_name
+    
+    # 设置用户角色
+    def set_user_role(self, user_role: UserRole) -> None:
+        self.user.user_role = user_role
+    
+    # 进入房间
+    def join_room(self, room_id: str, role: UserRole) -> None:
+        self.user.join_time = int(time.time() * 1000)
+        self.user.room_id = room_id
+        self.user.user_role = role
 
-    def to_dict(self):
+    # 转换成字典对象
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "user_id": self.user.user_id,
             "user_name": self.user.user_name,
@@ -52,62 +59,58 @@ class UserModel:
 # 房间模型
 class RoomModel:
     def __init__(self,
+                 app_id: str,
                  room_id: str,
-                 host: UserModel,
+                 host_user: UserModel,
                  ):
-        
         self.room = MeetingRoomState(
+            app_id = app_id,
             room_id = room_id,
-            host_user_id = host.get_user_id(),
-            host_user_name = host.get_user_name(),
+            room_name = f"meet_{room_id}",
+            host_user_id = host_user.get_user_id(),
+            host_user_name = host_user.get_user_name(),
             start_time = int(time.time() * 1000),
-            activeSpeakers = [host.get_user_id()],
+            base_time= int(time.time() * 1000),
+            activeSpeakers = [host_user.get_user_id()],
             )
-        
-        self.users = {host.get_user_id(): host}
-
-
+        self.users = OrderedDict()
+        self.add_user(host_user, UserRole.HOST)
 
     # 用户进入房间
-    def add_user(self, user: User):
-        self.users[user.user_id] = user
+    def add_user(self, user: UserModel, role: UserRole = UserRole.VISITOR) -> None:
+        user.join_room(self.room.room_id, role)
+        self.users[user.get_user_id()] = user
 
     # 用户退出房间
-    def remove_user(self, user_id: str):
+    def remove_user(self, user_id: str) -> None:
         if user_id in self.users:
             del self.users[user_id]
-            if self.host_user_id == user_id:
-                # promote another user to host (simple rule: first in list)
-                self.host_user_id = next(iter(self.users), None)
+            # 如果删除的是主持人，将下一个用户设为主持人
+            if self.room.host_user_id == user_id:
+                self.room.host_user_id = next(iter(self.users), None)
+                if self.room.host_user_id:
+                    self.room.host_user_name = self.users[self.room.host_user_id].get_user_name()
+                    self.users[self.room.host_user_id].set_user_role(UserRole.HOST)
 
-    # 转为房间信息
-    def to_room_info(self):
-        # return a simplified room dict similar to front-end expectations
+    # 转换成字典对象
+    def to_dict(self) -> Dict[str, Any]:
         return {
-            "room_id": self.room_id,
-            "host_user_id": self.host_user_id,
-            "user_count": len(self.users),
-            "started_at": self.started_at,
-            "finished": self.finished,
-            "sharing_user_id": self.sharing_user_id,
+            "user_id": self.user.user_id,
+            "user_name": self.user.user_name,
+            "user_role": int(self.user.user_role),
+            "camera": int(self.user.camera),
+            "mic": int(self.user.mic),
+            "join_time": self.user.join_time,
+            "room_id": self.user.room_id,
+            "share_permission": int(self.user.share_permission),
+            "share_status": int(self.user.share_status),
+            "share_type": int(self.user.share_type),
+            "operate_camera_permission": int(self.user.operate_camera_permission),
+            "operate_mic_permission": int(self.user.operate_mic_permission),
+            "is_silence": int(self.user.is_silence),
         }
-
-    # 获取用户列表（按进入时间递增排序）
-    def user_list_sorted(self):
-        return sorted([u.to_dict() for u in self.users.values()], key=lambda x: x["join_time"]) 
-
-
-# In-memory store (for demo only)
-rooms: Dict[str, Room] = {}
-
-
-def get_or_create_room(room_id: str, host_user_id: Optional[str] = None) -> Room:
-    room = rooms.get(room_id)
-    if not room:
-        room = Room(room_id=room_id, host_user_id=host_user_id)
-        rooms[room_id] = room
-    return room
-
-
-def delete_room(room_id: str):
-    rooms.pop(room_id, None)
+    
+    # 获取用户列表
+    def get_user_list(self) -> List[MeetingUser]:
+        return [u.user for u in self.users.values()]
+    

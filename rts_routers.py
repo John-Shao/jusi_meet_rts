@@ -2,11 +2,12 @@ import logging
 from fastapi import APIRouter, Depends, Request
 import json
 from typing import Optional, Dict
-from schemas import *
+from schemas import (
+    BaseResponse,
+    DeviceState,
+)
 from models import (
-    MeetingUser,
-    MeetingRoomState,
-    JoinMeetingRoomRes,
+    UserModel,
     )
 from rts_service import service
 
@@ -21,7 +22,7 @@ async def handle_rts_message(request: Request):
     try:
         # 手动解析JSON，不管Content-Type头是什么
         request_data = json.loads(body.decode("utf-8"))
-        logger.debug(f"收到 RTS 消息: {json.dumps(request_data, indent=2, ensure_ascii=False)}")
+        logger.debug(f"收到通知: {json.dumps(request_data, indent=2, ensure_ascii=False)}")
 
         msg_str = request_data.get("message", "")
         binary = request_data.get("binary", False)
@@ -37,14 +38,20 @@ async def handle_rts_message(request: Request):
 
         # 解析message字段
         message = json.loads(msg_str)
+        logger.debug(f"通知内容: {json.dumps(message, indent=2, ensure_ascii=False)}")
+
+        # 验证登录态（这里需要验证登录态）
+        login_token = message.get("login_token")
+        if not login_token:
+            return BaseResponse(code=450, message="Login token required")
+
         event_name = message.get("event_name")
         content_str = message.get("content")
         content = json.loads(content_str)
+        logger.debug(f"事件信息: {json.dumps(content, indent=2, ensure_ascii=False)}")
             
     except json.JSONDecodeError:
         return BaseResponse(code=400, message="Invalid JSON format")
-    
-    logger.debug(f"事件名称: {event_name}, 事件内容: {content}")
 
     # 根据不同的事件名称处理不同的消息
     handler = EVENT_HANDLERS.get(event_name)
@@ -66,18 +73,22 @@ async def handle_rts_message(request: Request):
 }
 '''
 async def handle_join_room(message_data: Dict, content: Dict|str):
+    """
+    处理加入房间事件
+    """
+    user_model = UserModel(
+        user_id=message_data.get("user_id"),
+        user_name=content.get("user_name"),
+        device_id=message_data.get("device_id"),
+        camera=DeviceState(content.get("camera", 0)),
+        mic=DeviceState(content.get("mic", 0)),
+    )
+
     app_id = message_data.get("app_id")
     room_id = message_data.get("room_id")
-    device_id = message_data.get("device_id")
-    user_id = message_data.get("user_id")
-    login_token = message_data.get("login_token")
     request_id = message_data.get("request_id")
 
-    user_name = content.get("user_name")
-    camera = DeviceState(content.get("camera", 0))
-    mic = DeviceState(content.get("mic", 0))
-
-    
+    service.join_room(app_id, user_model, room_id)    
 
 
 

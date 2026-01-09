@@ -72,41 +72,43 @@ class AudioPropertiesInfo(BaseModel):
 
 # 会议房间状态
 class MeetingRoomState(BaseModel):
-    app_id: Optional[str]
-    room_id: Optional[str]
-    room_name: Optional[str]
-    host_user_id: Optional[str]
-    host_user_name: Optional[str]
-    room_mic_status: DeviceState = RoomMicStatus.ALLOW_MIC               # 房间内是否全体静音
+    app_id: str
+    room_id: str
+    room_name: str
+    host_user_id: Optional[str] = None
+    host_user_name: Optional[str] = None
+    room_mic_status: DeviceState = RoomMicStatus.ALLOW_MIC  # 房间内是否全体静音
     operate_self_mic_permission: Permission = Permission.HAS_PERMISSION  # 操作自己麦克风权限
-    share_status: ShareStatus = ShareStatus.NOT_SHARING                  # 房间内是否正在共享
-    share_type: Optional[ShareType]
-    share_user_id: Optional[str]
-    share_user_name: Optional[str]
+    share_status: ShareStatus = ShareStatus.NOT_SHARING  # 房间内是否正在共享
+    share_type: Optional[ShareType] = None
+    share_user_id: Optional[str] = None
+    share_user_name: Optional[str] = None
     start_time: int = 0       # 会议开始时间，时间戳，单位毫秒
-    base_time: Optional[int]  # 服务器时间，时间戳，单位毫秒
-    record_status: Optional[RecordStatus]   # 录制状态
-    record_start_time: Optional[int]        # 可选，最近一次开始录制的时间
+    base_time: Optional[int] = None  # 服务器时间，时间戳，单位毫秒
+    record_status: Optional[RecordStatus] = RecordStatus.NOT_RECORDING  # 录制状态
+    record_start_time: Optional[int] = None  # 可选，最近一次开始录制的时间
     activeSpeakers: List[str] = []          # 活动用户ID（user_id）列表    
 
 # 会议用户信息
 class MeetingUser(BaseModel):
     user_id: str
     user_name: str
-    user_role: UserRole
-    camera: DeviceState
-    mic: DeviceState
-    join_time: int
-    room_id: str
+    user_role: Optional[UserRole] = UserRole.VISITOR
+    device_id: Optional[str] = None   # 额外添加参数（John-Shao）
+    camera: Optional[DeviceState] = DeviceState.OPEN
+    mic: Optional[DeviceState] = DeviceState.OPEN
+    join_time: Optional[int] = 0  # 加入时间，时间戳，单位毫秒
+    room_id: Optional[str] = None
     share_permission: Permission = Permission.HAS_PERMISSION
     share_status: ShareStatus = ShareStatus.NOT_SHARING
     share_type: ShareType = ShareType.SCREEN
     operate_camera_permission: Optional[Permission] = Permission.HAS_PERMISSION  # 操作自己摄像头权限
     operate_mic_permission: Optional[Permission] = Permission.HAS_PERMISSION     # 操作自己麦克风权限
     is_silence: Optional[Silence] = Silence.NOT_SILENT  # 是否静音
-    audioPropertiesInfo: Optional[AudioPropertiesInfo]
-    isLocal: Optional[bool]
-    isActive: Optional[bool]
+    # 下面三个前端属性，后端不返回
+    audioPropertiesInfo: Optional[AudioPropertiesInfo] = None  # 音频属性信息
+    isLocal: Optional[bool] = False  # 是否本地用户
+    isActive: Optional[bool] = False  # 是否活动用户
 
 # 加入房间响应
 class JoinMeetingRoomRes(BaseModel):
