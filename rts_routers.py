@@ -5,10 +5,9 @@ from typing import Optional, Dict
 from schemas import (
     BaseResponse,
     DeviceState,
+    JoinMeetingRoomRes,
 )
-from models import (
-    UserModel,
-    )
+from models import UserModel, RoomModel
 from rts_service import service
 
 logger = logging.getLogger(__name__)
@@ -76,7 +75,7 @@ async def handle_join_room(message_data: Dict, content: Dict|str):
     """
     处理加入房间事件
     """
-    user_model = UserModel(
+    user = UserModel(
         user_id=message_data.get("user_id"),
         user_name=content.get("user_name"),
         device_id=message_data.get("device_id"),
@@ -88,7 +87,14 @@ async def handle_join_room(message_data: Dict, content: Dict|str):
     room_id = message_data.get("room_id")
     request_id = message_data.get("request_id")
 
-    service.join_room(app_id, user_model, room_id)    
+    room: RoomModel = service.join_room(app_id, user, room_id)
+
+    res = JoinMeetingRoomRes(
+        room_id=room.room_id,
+        host_user=room.host_user.model_dump(),
+        users=[user.model_dump() for user in room.users],
+    )
+
 
 
 
