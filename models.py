@@ -10,6 +10,7 @@ class UserModel:
             device_id: str,
             camera: DeviceState,
             mic: DeviceState,
+            is_silence: Optional[SilenceState] = None,
             ):
         self._user = MeetingUser(
             user_id = user_id,
@@ -17,6 +18,7 @@ class UserModel:
             device_id = device_id,
             camera = camera,
             mic = mic,
+            is_silence = is_silence,
         )
 
     @property
@@ -39,7 +41,7 @@ class UserModel:
 
     # 转换成字典对象
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        user_dict = {
             "user_id": self._user.user_id,
             "user_name": self._user.user_name,
             "user_role": int(self._user.user_role),
@@ -52,8 +54,12 @@ class UserModel:
             "share_type": int(self._user.share_type),
             "operate_camera_permission": int(self._user.operate_camera_permission),
             "operate_mic_permission": int(self._user.operate_mic_permission),
-            "is_silence": int(self._user.is_silence),
         }
+    
+        if self._user.is_silence is not None:
+            user_dict["is_silence"] = int(self._user.is_silence)
+
+        return user_dict
 
 
 # 房间模型

@@ -17,31 +17,6 @@ class RtsService:
             self._rooms[room_id].add_user(user)
 
         return self._rooms[room_id]
-    
-    # 用户退出房间
-    async def leave_room(self, user_id: str):
-        # 简化处理，实际应更新房间状态和用户列表
-        pass
-    
-    # 结束会议
-    async def finish_room(self, room_id: str):
-        if room_id in self._rooms:
-            self._rooms[room_id].finished_at = int(time.time() * 1000)
-            self._rooms[room_id].finished = True
-
-    # 获取房间
-    def get_room(self, room_id: str) -> Optional[Room]:
-        return self._rooms.get(room_id, None)
-
-    # 创建房间
-    def create_room(self, room_id: str, host_uid: Optional[str] = None) -> Room:
-        room = Room(room_id=room_id, host_uid=host_uid)
-        self._rooms[room_id] = room
-        return room
-
-    # 删除房间
-    def delete_room(self, room_id: str):
-        self._rooms.pop(room_id, None)
 
 
 # 创建服务实例

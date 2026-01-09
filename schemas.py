@@ -39,7 +39,7 @@ class ShareStatus(IntEnum):
     SHARING = 1
 
 # 是否静默用户，云录屏用户是静默用户，其它用户不是静默用户
-class Silence(IntEnum):
+class SilenceState(IntEnum):
     NOT_SILENT = 0
     SILENCE = 1
 
@@ -94,7 +94,6 @@ class MeetingUser(BaseModel):
     user_id: str
     user_name: str
     user_role: Optional[UserRole] = UserRole.VISITOR
-    device_id: Optional[str] = None   # 额外添加参数（John-Shao）
     camera: Optional[DeviceState] = DeviceState.OPEN
     mic: Optional[DeviceState] = DeviceState.OPEN
     join_time: Optional[int] = 0  # 加入时间，时间戳，单位毫秒
@@ -104,11 +103,15 @@ class MeetingUser(BaseModel):
     share_type: ShareType = ShareType.SCREEN
     operate_camera_permission: Optional[Permission] = Permission.HAS_PERMISSION  # 操作自己摄像头权限
     operate_mic_permission: Optional[Permission] = Permission.HAS_PERMISSION     # 操作自己麦克风权限
-    is_silence: Optional[Silence] = Silence.NOT_SILENT  # 是否静音
+    is_silence: Optional[SilenceState] = SilenceState.NOT_SILENT  # 是否静音
     # 下面三个前端属性，后端不返回
     audioPropertiesInfo: Optional[AudioPropertiesInfo] = None  # 音频属性信息
     isLocal: Optional[bool] = False  # 是否本地用户
     isActive: Optional[bool] = False  # 是否活动用户
+
+    # 额外参数（add by John-Shao）
+    device_id: Optional[str] = None
+    rtc_token: Optional[str] = None
 
 # 加入房间响应
 class JoinMeetingRoomRes(BaseModel):

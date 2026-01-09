@@ -75,24 +75,35 @@ async def handle_join_room(message_data: Dict, content: Dict|str):
     """
     处理加入房间事件
     """
-    user = UserModel(
-        user_id=message_data.get("user_id"),
-        user_name=content.get("user_name"),
-        device_id=message_data.get("device_id"),
-        camera=DeviceState(content.get("camera", 0)),
-        mic=DeviceState(content.get("mic", 0)),
-    )
+    request_id = message_data.get("request_id")
 
+    user_id = message_data.get("user_id"),
+    user_name = content.get("user_name"),
+    device_id = message_data.get("device_id"),
+    camera = DeviceState(content.get("camera", 0)),
+    mic = DeviceState(content.get("mic", 0)),
+    
     app_id = message_data.get("app_id")
     room_id = message_data.get("room_id")
-    request_id = message_data.get("request_id")
+    
+    user = UserModel(
+        user_id=user_id,
+        user_name=user_name,
+        device_id=device_id,
+        camera=camera,
+        mic=mic,
+    )
 
     room: RoomModel = service.join_room(app_id, user, room_id)
 
     res = JoinMeetingRoomRes(
-        room_id=room.room_id,
-        host_user=room.host_user.model_dump(),
-        users=[user.model_dump() for user in room.users],
+        room = room._room,
+        user= user._user,
+        user_list = room.get_user_list(),
+        token = user._user.rtc_token,
+        wb_room_id = room_id,
+        wb_user_id = user_id,
+        wb_token = user._user.rtc_token
     )
 
 
