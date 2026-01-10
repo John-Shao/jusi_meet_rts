@@ -2,7 +2,7 @@ import json
 import logging
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-import time
+from utils import current_timestamp
 
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request: Request, call_next):
         # 记录请求开始时间
-        start_time = time.time()
+        start_time = current_timestamp()
         
         # 获取请求体（对于可能验证失败的情况特别重要）
         request_body = await self._get_request_body(request)
@@ -110,10 +110,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             logger.warning(f"获取响应体失败: {e}")
 
         # 计算处理时间
-        process_time = time.time() - start_time
+        process_time = current_timestamp() - start_time
         
         # 记录响应信息
-        logger.info(f"请求结束: {request.method} {request.url} - 状态码: {response.status_code} - 耗时: {process_time:.4f}s")
+        logger.info(f"请求结束: {request.method} {request.url} - 状态码: {response.status_code} - 耗时: {process_time:.4f}ms")
         logger.info(f"响应头: {dict(response.headers)}")
         if response_body is not None:
             # 格式化响应体为易读JSON

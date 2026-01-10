@@ -1,8 +1,6 @@
-from typing import Dict, List, Optional
-from models import UserModel, RoomModel
-from user_service import UserService
-from utils import generate_rtc_token, generate_whiteboard_token
-import time
+from typing import Dict
+from user_model import UserModel
+from room_model import RoomModel
 
 class RtsService:
     def __init__(self):

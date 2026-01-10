@@ -1,6 +1,8 @@
+import time
 from enum import IntEnum
 from pydantic import BaseModel, Field
-from typing import Optional, Any, List, Dict
+from typing import Optional, List, Dict
+from utils import current_timestamp
 
 
 # 用户角色枚举
@@ -43,8 +45,8 @@ class SilenceState(IntEnum):
     NOT_SILENT = 0
     SILENCE = 1
 
-# 请求消息
-class ServerMessage(BaseModel):
+# 请求消息模型
+class RequestMessageBase(BaseModel):
     app_id: str
     room_id: Optional[str]
     device_id: Optional[str]
@@ -52,18 +54,17 @@ class ServerMessage(BaseModel):
     login_token: Optional[str]
     request_id: str
     event_name: str
-    content: str  # JSON string
+    content: str
 
-# RTS消息基础模型
-class RTSMessage(BaseModel):
-    event_name: str
-    content: Dict
-
-# 响应模型
-class BaseResponse(BaseModel):
+# 响应消息模型
+class ResponseMessageBase(BaseModel):
+    message_type: str = 'return'
+    request_id: str
     code: int = 200
-    message: str = "success"
-    data: Optional[Dict] = None
+    event_name: str
+    message: str = "ok"  # 详细错误信息
+    timestamp: int = Field(default_factory=lambda: current_timestamp())  # 时间戳ms
+    response: Optional[Dict] = None
 
 # 音频属性信息
 class AudioPropertiesInfo(BaseModel):
@@ -83,11 +84,11 @@ class MeetingRoomState(BaseModel):
     share_type: Optional[ShareType] = None
     share_user_id: Optional[str] = None
     share_user_name: Optional[str] = None
-    start_time: int = 0       # 会议开始时间，时间戳，单位毫秒
+    start_time: int = 0  # 会议开始时间，时间戳，单位毫秒
     base_time: Optional[int] = None  # 服务器时间，时间戳，单位毫秒
     record_status: Optional[RecordStatus] = RecordStatus.NOT_RECORDING  # 录制状态
-    record_start_time: Optional[int] = None  # 可选，最近一次开始录制的时间
-    activeSpeakers: List[str] = []          # 活动用户ID（user_id）列表    
+    record_start_time: Optional[int] = None  # 最近一次开始录制的时间
+    activeSpeakers: List[str] = []  # 活动用户ID（user_id）列表    
 
 # 会议用户信息
 class MeetingUser(BaseModel):
@@ -108,13 +109,12 @@ class MeetingUser(BaseModel):
     audioPropertiesInfo: Optional[AudioPropertiesInfo] = None  # 音频属性信息
     isLocal: Optional[bool] = False  # 是否本地用户
     isActive: Optional[bool] = False  # 是否活动用户
-
     # 额外参数（add by John-Shao）
     device_id: Optional[str] = None
-    rtc_token: Optional[str] = None
 
 # 加入房间响应
 class JoinMeetingRoomRes(BaseModel):
+    nts: int = Field(default_factory=lambda: int(time.time()))  # 时间戳ms
     room: MeetingRoomState
     user: MeetingUser
     user_list: List[MeetingUser]

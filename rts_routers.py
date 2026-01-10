@@ -1,20 +1,25 @@
 import logging
 from fastapi import APIRouter, Depends, Request
 import json
-from typing import Optional, Dict
+from typing import Dict
+from fastapi import HTTPException
 from schemas import (
-    BaseResponse,
     DeviceState,
     JoinMeetingRoomRes,
+    RequestMessageBase,
+    ResponseMessageBase
 )
-from models import UserModel, RoomModel
+from user_model import UserModel
+from room_model import RoomModel
+from utils import generate_token
 from rts_service import service
+
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.post("/rts/message", response_model=BaseResponse)
+@router.post("/rts/message", response_model=ResponseMessageBase)
 async def handle_rts_message(request: Request):
     # 手动获取请求体
     body = await request.body()
@@ -29,35 +34,32 @@ async def handle_rts_message(request: Request):
 
         # 不使用二进制消息
         if binary:
-            return BaseResponse(code=400, message="Binary message received")
+            return ResponseMessageBase(code=400, message="Binary message received")
 
         # 验证签名（这里简单用字符串比较，实际应进行签名验证）
         if signature != "temp_server_signature":
-            return BaseResponse(code=401, message="Invalid signature")
+            return ResponseMessageBase(code=401, message="Invalid signature")
 
         # 解析message字段
-        message = json.loads(msg_str)
-        logger.debug(f"通知内容: {json.dumps(message, indent=2, ensure_ascii=False)}")
+        message = RequestMessageBase(**json.loads(msg_str))
+        logger.debug(f"通知内容: {json.dumps(message.model_dump(), indent=2, ensure_ascii=False)}")
 
         # 验证登录态（这里需要验证登录态）
-        login_token = message.get("login_token")
-        if not login_token:
-            return BaseResponse(code=450, message="Login token required")
+        if not message.login_token:
+            return ResponseMessageBase(code=450, message="Login token required", request_id=message.request_id)
 
-        event_name = message.get("event_name")
-        content_str = message.get("content")
-        content = json.loads(content_str)
+        content = json.loads(message.content)
         logger.debug(f"事件信息: {json.dumps(content, indent=2, ensure_ascii=False)}")
             
     except json.JSONDecodeError:
-        return BaseResponse(code=400, message="Invalid JSON format")
+        return ResponseMessageBase(code=400, message="Invalid JSON format", request_id=message.request_id)
 
     # 根据不同的事件名称处理不同的消息
-    handler = EVENT_HANDLERS.get(event_name)
+    handler = EVENT_HANDLERS.get(message.event_name)
     if handler:
         return await handler(message, content)
     else:
-        return BaseResponse(code=400, message=f"Unknown event: {event_name}")
+        return ResponseMessageBase(code=400, message=f"Unknown event: {message.event_name}", request_id=message.request_id)
 
 '''
 处理加入房间
@@ -71,71 +73,43 @@ async def handle_rts_message(request: Request):
   "signature": "temp_server_signature"
 }
 '''
-async def handle_join_room(message_data: Dict, content: Dict|str):
+async def handle_join_room(message: Dict, content: Dict|str):
     """
     处理加入房间事件
     """
-    request_id = message_data.get("request_id")
-
-    user_id = message_data.get("user_id"),
-    user_name = content.get("user_name"),
-    device_id = message_data.get("device_id"),
-    camera = DeviceState(content.get("camera", 0)),
-    mic = DeviceState(content.get("mic", 0)),
-    
-    app_id = message_data.get("app_id")
-    room_id = message_data.get("room_id")
+    user_name = content.get("user_name")
+    camera = DeviceState(content.get("camera", DeviceState.CLOSED))
+    mic = DeviceState(content.get("mic", DeviceState.CLOSED))
+    is_silence = content.get("is_silence", None)
     
     user = UserModel(
-        user_id=user_id,
+        user_id=message.user_id,
+        device_id=message.device_id,
         user_name=user_name,
-        device_id=device_id,
         camera=camera,
         mic=mic,
+        is_silence=is_silence,
     )
 
-    room: RoomModel = service.join_room(app_id, user, room_id)
+    room: RoomModel = await service.join_room(message.app_id, user, message.room_id)
 
-    res = JoinMeetingRoomRes(
-        room = room._room,
-        user= user._user,
+    token = generate_token(user._user.user_id, message.room_id)
+
+    response = JoinMeetingRoomRes(
+        room = room.to_dict(),
+        user= user.to_dict(),
         user_list = room.get_user_list(),
-        token = user._user.rtc_token,
-        wb_room_id = room_id,
-        wb_user_id = user_id,
-        wb_token = user._user.rtc_token
+        token = token,
+        wb_room_id = message.room_id,
+        wb_user_id = message.user_id,
+        wb_token = token
     )
 
-
-
-
-'''
-    meeting_service = MeetingService()
-    user_service = UserService()
-    
-    # 从request_data提取顶层字段
-    
-    
-    # 解析content中的参数
-    user_name = content.get("user_name")
-    camera = DeviceState(content.get("camera", 0))
-    mic = DeviceState(content.get("mic", 0))
-    is_silence = Silence(content.get("is_silence", 0)) if content.get("is_silence") else None
-    
-    # 创建用户
-    user = await user_service.create_user(user_id, user_name, camera, mic, is_silence, device_id)
-    
-    # 加入房间
-    join_result = await meeting_service.join_room(
-        user=user,
-        room_id=room_id,
-        app_id=app_id,
-        login_token=login_token,
-        request_id=request_id
+    return ResponseMessageBase(
+        request_id=message.request_id,
+        response=response.model_dump()
     )
-    
-    return BaseResponse(data=join_result.model_dump())
-'''
+
 
 # 处理离开房间
 async def handle_leave_room(content: Dict):
