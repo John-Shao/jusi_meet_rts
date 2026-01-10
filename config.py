@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     account_id: str = ""
     volc_ak: str = ""
     volc_sk: str = ""
+    volc_region: str = "cn-beijing"
 
     # RTC配置
     rtc_app_id: str = ""

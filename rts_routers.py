@@ -1,18 +1,24 @@
 import logging
-from fastapi import APIRouter, Depends, Request
+from fastapi import (
+    APIRouter,
+    Request,
+    Response,
+    BackgroundTasks,
+    )
 import json
 from typing import Dict
-from fastapi import HTTPException
 from schemas import (
     DeviceState,
     JoinMeetingRoomRes,
     RequestMessageBase,
-    ResponseMessageBase
+    ResponseMessageBase,
+    ReturnMessageBase,
 )
 from user_model import UserModel
 from room_model import RoomModel
 from utils import generate_token
 from rts_service import service
+from vertc_service import rtc_service
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +26,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/rts/message", response_model=ResponseMessageBase)
-async def handle_rts_message(request: Request):
+async def handle_rts_message(request: Request, background_tasks: BackgroundTasks):
     # 手动获取请求体
     body = await request.body()
     try:
@@ -32,34 +38,69 @@ async def handle_rts_message(request: Request):
         binary = request_data.get("binary", False)
         signature = request_data.get("signature", "")
 
-        # 不使用二进制消息
+        # 不处理二进制消息
         if binary:
-            return ResponseMessageBase(code=400, message="Binary message received")
+            logger.warning(f"收到二进制消息，丢弃: {msg_str}")
+            return ResponseMessageBase(
+                status_code=400,
+                request_id=message.request_id,
+                event_name=message.event_name,
+                content="binary message not supported",
+                )
 
         # 验证签名（这里简单用字符串比较，实际应进行签名验证）
         if signature != "temp_server_signature":
-            return ResponseMessageBase(code=401, message="Invalid signature")
+            logger.warning(f"收到无效签名消息: {msg_str}")
+            return ResponseMessageBase(
+                status_code=401,
+                request_id=message.request_id,
+                event_name=message.event_name,
+                content="invalid signature",
+                )
 
         # 解析message字段
         message = RequestMessageBase(**json.loads(msg_str))
         logger.debug(f"通知内容: {json.dumps(message.model_dump(), indent=2, ensure_ascii=False)}")
+    except json.JSONDecodeError:
+        logger.error(f"JSON解析错误: {msg_str}")
+        return ResponseMessageBase(
+            status_code=402,
+            request_id=message.request_id,
+            event_name=message.event_name,
+            content="invalid message format",
+            )
 
+    # 添加后台任务处理返回消息
+    background_tasks.add_task(send_return_message, message)
+    
+    return ResponseMessageBase(
+        status_code=200,
+        request_id=message.request_id,
+        event_name=message.event_name,
+        content="ok",
+        )
+
+# 异步发送return消息
+async def send_return_message(message: RequestMessageBase):
+    try:
         # 验证登录态（这里需要验证登录态）
         if not message.login_token:
-            return ResponseMessageBase(code=450, message="Login token required", request_id=message.request_id)
+            logger.warning(f"收到缺失登录态消息: {message}")
+            return
 
         content = json.loads(message.content)
         logger.debug(f"事件信息: {json.dumps(content, indent=2, ensure_ascii=False)}")
             
     except json.JSONDecodeError:
-        return ResponseMessageBase(code=400, message="Invalid JSON format", request_id=message.request_id)
+        logger.error(f"JSON解析错误: {message}")
+        return
 
     # 根据不同的事件名称处理不同的消息
     handler = EVENT_HANDLERS.get(message.event_name)
     if handler:
-        return await handler(message, content)
+        await handler(message, content)
     else:
-        return ResponseMessageBase(code=400, message=f"Unknown event: {message.event_name}", request_id=message.request_id)
+        logger.warning(f"收到未知事件消息: {message}")
 
 '''
 处理加入房间
@@ -93,22 +134,49 @@ async def handle_join_room(message: Dict, content: Dict|str):
 
     room: RoomModel = await service.join_room(message.app_id, user, message.room_id)
 
-    token = generate_token(user._user.user_id, message.room_id)
-
+    wb_room_id = f"whiteboard_{message.room_id}"
+    wb_user_id = f"whiteboard_{message.user_id}"
+    '''
     response = JoinMeetingRoomRes(
         room = room.to_dict(),
         user= user.to_dict(),
         user_list = room.get_user_list(),
-        token = token,
-        wb_room_id = message.room_id,
-        wb_user_id = message.user_id,
-        wb_token = token
+        token = generate_token(user._user.user_id, message.room_id),
+        wb_room_id = wb_room_id,
+        wb_user_id = wb_user_id,
+        wb_token = generate_token(wb_user_id, wb_room_id),
     )
 
-    return ResponseMessageBase(
+    res = ResponseMessageBase(
         request_id=message.request_id,
-        response=response.model_dump()
+        event_name=message.event_name,
+        response=response.model_dump(),
     )
+    '''
+    response = {
+        "room": room.to_dict(),
+        "user": user.to_dict(),
+        "user_list": room.get_user_list(),
+        "token": generate_token(user._user.user_id, message.room_id),
+        "wb_room_id": wb_room_id,
+        "wb_user_id": wb_user_id,
+        "wb_token": generate_token(wb_user_id, wb_room_id),
+    }
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=response,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 
 # 处理离开房间

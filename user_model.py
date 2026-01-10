@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Any
 from schemas import *
-from utils import current_timestamp
+from utils import current_timestamp_ms
 
 
 # 用户模型
@@ -36,13 +36,13 @@ class UserModel:
     
     # 进入房间
     def join_room(self, room_id: str, role: UserRole) -> None:
-        self._user.join_time = current_timestamp()
+        self._user.join_time = current_timestamp_ms()
         self._user.room_id = room_id
         self._user.user_role = role
 
     # 转换成字典对象
     def to_dict(self) -> Dict[str, Any]:
-        user_dict = {
+        return {
             "user_id": self._user.user_id,
             "user_name": self._user.user_name,
             "user_role": int(self._user.user_role),
@@ -56,8 +56,3 @@ class UserModel:
             "operate_camera_permission": int(self._user.operate_camera_permission),
             "operate_mic_permission": int(self._user.operate_mic_permission),
         }
-    
-        if self._user.is_silence is not None:
-            user_dict["is_silence"] = int(self._user.is_silence)
-
-        return user_dict

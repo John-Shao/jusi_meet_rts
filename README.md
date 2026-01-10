@@ -517,7 +517,7 @@ class UserService:
             user_role=UserRole.VISITOR,  # 默认访客，第一个进房的用户会被设置为主持人
             camera=camera,
             mic=mic,
-            join_time=int(time.time()),
+            join_time=current_timestamp_ms(),
             share_permission=Permission.NO_PERMISSION,
             is_silence=is_silence
         )

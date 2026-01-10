@@ -1,7 +1,7 @@
 from typing import Dict, OrderedDict, Any
 from schemas import *
 from user_model import UserModel
-from utils import current_timestamp
+from utils import current_timestamp_s
 
 # 房间模型
 class RoomModel:
@@ -16,9 +16,8 @@ class RoomModel:
             room_name = f"meet_{room_id}",
             host_user_id = host_user.user_id,
             host_user_name = host_user.user_name,
-            start_time = current_timestamp(),
-            base_time= current_timestamp(),
-            activeSpeakers = [host_user.user_id],
+            start_time = current_timestamp_s(),
+            base_time= current_timestamp_s(),
             )
         self._users = OrderedDict()
         self.add_user(host_user, UserRole.HOST)
@@ -45,7 +44,7 @@ class RoomModel:
 
     # 转换成字典对象
     def to_dict(self) -> Dict[str, Any]:
-        room_dict = {
+        return {
             "app_id": self._room.app_id,
             "room_id": self._room.room_id,
             "room_name": self._room.room_name,
@@ -54,19 +53,17 @@ class RoomModel:
             "room_mic_status": int(self._room.room_mic_status),
             "operate_self_mic_permission": int(self._room.operate_self_mic_permission),
             "share_status": int(self._room.share_status),
+            "share_type": int(self._room.share_type),
+            "share_user_id": self._room.share_user_id,
+            "share_user_name": self._room.share_user_name,
             "start_time": self._room.start_time,
             "base_time": self._room.base_time,
             "record_status": int(self._room.record_status),
             "record_start_time": self._room.record_start_time,
-            "activeSpeakers": self._room.activeSpeakers,
+            "status": self._room.status,
+            "experience_time_limit": 1800,  # 体验时长限制
+            "ext": "",
         }
-
-        if self._room.share_status == ShareStatus.SHARING:
-            room_dict["share_type"] = int(self._room.share_type)
-            room_dict["share_user_id"] = self._room.share_user_id
-            room_dict["share_user_name"] = self._room.share_user_name
-
-        return room_dict
     
     # 获取用户列表
     def get_user_list(self) -> List[Dict]:

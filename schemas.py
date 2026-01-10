@@ -1,8 +1,8 @@
 import time
 from enum import IntEnum
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict
-from utils import current_timestamp
+from typing import Optional, List, Dict, Any
+from utils import current_timestamp_ms, current_timestamp_s
 
 
 # 用户角色枚举
@@ -56,6 +56,14 @@ class RequestMessageBase(BaseModel):
     event_name: str
     content: str
 
+# 返回消息模型
+class ReturnMessageBase(BaseModel):
+    AppId: str
+    From: str = "server"
+    To: str
+    Binary: bool = False
+    Message: Optional[Any] = {}
+
 # 响应消息模型
 class ResponseMessageBase(BaseModel):
     message_type: str = 'return'
@@ -63,32 +71,27 @@ class ResponseMessageBase(BaseModel):
     code: int = 200
     event_name: str
     message: str = "ok"  # 详细错误信息
-    timestamp: int = Field(default_factory=lambda: current_timestamp())  # 时间戳ms
-    response: Optional[Dict] = None
-
-# 音频属性信息
-class AudioPropertiesInfo(BaseModel):
-    linearVolume: int
-    nonlinearVolume: int
+    timestamp: int = Field(default_factory=lambda: current_timestamp_ms())  # 时间戳ms
+    response: Optional[Dict] = {}
 
 # 会议房间状态
 class MeetingRoomState(BaseModel):
     app_id: str
     room_id: str
-    room_name: str
-    host_user_id: Optional[str] = None
-    host_user_name: Optional[str] = None
+    room_name: Optional[str] = ""
+    host_user_id: Optional[str] = ""
+    host_user_name: Optional[str] = ""
     room_mic_status: DeviceState = RoomMicStatus.ALLOW_MIC  # 房间内是否全体静音
     operate_self_mic_permission: Permission = Permission.HAS_PERMISSION  # 操作自己麦克风权限
     share_status: ShareStatus = ShareStatus.NOT_SHARING  # 房间内是否正在共享
-    share_type: Optional[ShareType] = None
-    share_user_id: Optional[str] = None
-    share_user_name: Optional[str] = None
-    start_time: int = 0  # 会议开始时间，时间戳，单位毫秒
-    base_time: Optional[int] = None  # 服务器时间，时间戳，单位毫秒
+    share_type: Optional[ShareType] = ShareType.SCREEN
+    share_user_id: Optional[str] = ""
+    share_user_name: Optional[str] = ""
+    start_time: int = 0  # 会议开始时间，时间戳，单位秒
+    base_time: Optional[int] = 0  # 服务器时间，时间戳，单位秒
     record_status: Optional[RecordStatus] = RecordStatus.NOT_RECORDING  # 录制状态
-    record_start_time: Optional[int] = None  # 最近一次开始录制的时间
-    activeSpeakers: List[str] = []  # 活动用户ID（user_id）列表    
+    record_start_time: Optional[int] = 0  # 最近一次开始录制的时间
+    status: Optional[int] = 1
 
 # 会议用户信息
 class MeetingUser(BaseModel):
@@ -98,23 +101,19 @@ class MeetingUser(BaseModel):
     camera: Optional[DeviceState] = DeviceState.OPEN
     mic: Optional[DeviceState] = DeviceState.OPEN
     join_time: Optional[int] = 0  # 加入时间，时间戳，单位毫秒
-    room_id: Optional[str] = None
+    room_id: Optional[str] = ""
     share_permission: Permission = Permission.HAS_PERMISSION
     share_status: ShareStatus = ShareStatus.NOT_SHARING
     share_type: ShareType = ShareType.SCREEN
     operate_camera_permission: Optional[Permission] = Permission.HAS_PERMISSION  # 操作自己摄像头权限
     operate_mic_permission: Optional[Permission] = Permission.HAS_PERMISSION     # 操作自己麦克风权限
+    # 官方demo中没有的数据 
     is_silence: Optional[SilenceState] = SilenceState.NOT_SILENT  # 是否静音
-    # 下面三个前端属性，后端不返回
-    audioPropertiesInfo: Optional[AudioPropertiesInfo] = None  # 音频属性信息
-    isLocal: Optional[bool] = False  # 是否本地用户
-    isActive: Optional[bool] = False  # 是否活动用户
-    # 额外参数（add by John-Shao）
-    device_id: Optional[str] = None
+    device_id: Optional[str] = ""
 
 # 加入房间响应
 class JoinMeetingRoomRes(BaseModel):
-    nts: int = Field(default_factory=lambda: int(time.time()))  # 时间戳ms
+    nts: int = Field(default_factory=lambda: current_timestamp_s())  # 时间戳ms
     room: MeetingRoomState
     user: MeetingUser
     user_list: List[MeetingUser]
