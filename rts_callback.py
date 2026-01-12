@@ -16,10 +16,10 @@ from vertc_service import rtc_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+callback_router = APIRouter()
 
-@router.post("/rts/message", response_model=ResponseMessageBase)
-async def handle_rts_message(request: Request, background_tasks: BackgroundTasks):
+@callback_router.post("/rts/callback", response_model=ResponseMessageBase)
+async def handle_rts_callback(request: Request, background_tasks: BackgroundTasks):
     # 手动获取请求体
     body = await request.body()
     try:

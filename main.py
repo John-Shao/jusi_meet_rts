@@ -3,7 +3,8 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from rts_routers import router
+from rts_meeting import meeting_router
+from rts_callback import callback_router
 from config import settings
 from log_mw import RequestLoggingMiddleware
 
@@ -62,12 +63,13 @@ app.add_middleware(
 app.add_middleware(RequestLoggingMiddleware)
 
 # 注册路由
-app.include_router(router, prefix=settings.api_vstr, tags=["RTS"])
+app.include_router(meeting_router, prefix=settings.api_vstr, tags=["Meeting RTS"])
+app.include_router(callback_router, prefix=settings.api_vstr, tags=["Callback RTS"])
 
 # 处理根路径请求
 @app.get("/")
 async def root():
-    return {"message": "Meeting Room Server"}
+    return {"message": "JUSI Meeting RTS Server"}
 
 if __name__ == "__main__":
     import uvicorn
