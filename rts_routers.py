@@ -2,18 +2,11 @@ import logging
 from fastapi import (
     APIRouter,
     Request,
-    Response,
     BackgroundTasks,
     )
 import json
 from typing import Dict
-from schemas import (
-    DeviceState,
-    JoinMeetingRoomRes,
-    RequestMessageBase,
-    ResponseMessageBase,
-    ReturnMessageBase,
-)
+from schemas import *
 from user_model import UserModel
 from room_model import RoomModel
 from utils import generate_token
@@ -102,26 +95,12 @@ async def send_return_message(message: RequestMessageBase):
     else:
         logger.warning(f"收到未知事件消息: {message}")
 
-'''
-处理加入房间
-请求消息实例
-{
-  "message": ("{\"app_id\":\"693b6cadaecbdd017582aa25\",\"room_id\":\"100\",\"device_id\":\"3f722811-2ec1-4335-ac1d-e3f7daeb3c3e\","
-              + "\"user_id\":\"7fd6b7ace1194a86b4249f9e1a137194\",\"login_token\":\"25573a5fe8654450a4755b5e0bf131ab\","
-              + "\"request_id\":\"vcJoinRoom:83bca91d-b75b-43be-93c6-3b130b711e42\",\"event_name\":\"vcJoinRoom\","
-              + "\"content\":\"{\\\"user_name\\\":\\\"11111111111\\\",\\\"camera\\\":1,\\\"mic\\\":1}\"}"),
-  "binary": false,
-  "signature": "temp_server_signature"
-}
-'''
-async def handle_join_room(message: Dict, content: Dict|str):
-    """
-    处理加入房间事件
-    """
+# 处理加入房间事件
+async def handle_join_room(message: Dict, content: Dict):
     user_name = content.get("user_name")
     camera = DeviceState(content.get("camera", DeviceState.CLOSED))
     mic = DeviceState(content.get("mic", DeviceState.CLOSED))
-    is_silence = content.get("is_silence", None)
+    is_silence = SilenceState(content.get("is_silence", SilenceState.NOT_SILENT))
     
     user = UserModel(
         user_id=message.user_id,
@@ -136,32 +115,16 @@ async def handle_join_room(message: Dict, content: Dict|str):
 
     wb_room_id = f"whiteboard_{message.room_id}"
     wb_user_id = f"whiteboard_{message.user_id}"
-    '''
+    
     response = JoinMeetingRoomRes(
-        room = room.to_dict(),
-        user= user.to_dict(),
+        room = room.model,
+        user= user.model,
         user_list = room.get_user_list(),
         token = generate_token(user._user.user_id, message.room_id),
         wb_room_id = wb_room_id,
         wb_user_id = wb_user_id,
         wb_token = generate_token(wb_user_id, wb_room_id),
     )
-
-    res = ResponseMessageBase(
-        request_id=message.request_id,
-        event_name=message.event_name,
-        response=response.model_dump(),
-    )
-    '''
-    response = {
-        "room": room.to_dict(),
-        "user": user.to_dict(),
-        "user_list": room.get_user_list(),
-        "token": generate_token(user._user.user_id, message.room_id),
-        "wb_room_id": wb_room_id,
-        "wb_user_id": wb_user_id,
-        "wb_token": generate_token(wb_user_id, wb_room_id),
-    }
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -179,170 +142,368 @@ async def handle_join_room(message: Dict, content: Dict|str):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 
-# 处理离开房间
-async def handle_leave_room(content: Dict):
-    pass
+# 处理离开房间事件
+async def handle_leave_room(message: Dict, content: Dict):
+    await service.leave_room(message.user_id, message.room_id)
 
-# 处理关闭房间
-async def handle_finish_room(content: Dict):
-    pass
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
 
-'''
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理关闭房间事件
+async def handle_finish_room(message: Dict, content: Dict):
+    await service.finish_room(message.user_id, message.room_id)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
 # 处理重连同步
-async def handle_resync(content: Dict):
-    meeting_service = MeetingService()
-    user_id = content.get("user_id")
-    room_id = content.get("room_id")
-    
-    reconnect_result = await meeting_service.reconnect(room_id, user_id)
-    
-    return BaseResponse(data=reconnect_result.dict())
+async def handle_resync(message: Dict, content: Dict):
+    room: RoomModel = await service.get_room(message.room_id)
+    user: UserModel = room.get_user(message.user_id)
+
+    response = ReconnectRes(
+        room = room.model,
+        user= user.model,
+        user_list = room.get_user_list(),
+    )
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=response,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理获取用户列表
-async def handle_get_user_list(content: Dict):
-    meeting_service = MeetingService()
-    room_id = content.get("room_id")
-    
-    user_list_result = await meeting_service.get_user_list(room_id)
-    
-    return BaseResponse(data=user_list_result.dict())
+async def handle_get_user_list(message: Dict, content: Dict):
+    room: RoomModel = await service.get_room(message.room_id)
+    user: UserModel = room.get_user(message.user_id)
 
-# 处理操作自己的摄像头
-async def handle_operate_self_camera(content: Dict):
-    user_service = UserService()
-    user_id = content.get("user_id")
-    operate = DeviceState(content.get("operate"))
-    
-    await user_service.update_camera_state(user_id, operate)
-    
-    return BaseResponse()
+    response = GetUserListRes(
+        user_count = len(room.get_user_list()),
+        user_list = room.get_user_list(),
+    )
 
-# 处理操作自己的麦克风
-async def handle_operate_self_mic(content: Dict):
-    user_service = UserService()
-    user_id = content.get("user_id")
-    operate = DeviceState(content.get("operate"))
-    
-    await user_service.update_mic_state(user_id, operate)
-    
-    return BaseResponse()
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=response,
+    )
 
-# 处理申请麦克风权限
-async def handle_operate_self_mic_apply(content: Dict):
-    meeting_service = MeetingService()
-    user_id = content.get("user_id")
-    
-    await meeting_service.apply_mic_permission(user_id)
-    
-    return BaseResponse()
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
 
-# 处理开始共享
-async def handle_start_share(content: Dict):
-    user_service = UserService()
-    user_id = content.get("user_id")
-    share_type = ShareType(content.get("share_type"))
-    
-    await user_service.start_share(user_id, share_type)
-    
-    return BaseResponse()
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-# 处理停止共享
-async def handle_finish_share(content: Dict):
-    user_service = UserService()
-    user_id = content.get("user_id")
-    
-    await user_service.stop_share(user_id)
-    
-    return BaseResponse()
+# 处理操纵自己的摄像头
+async def handle_operate_self_camera(message: Dict, content: Dict):
+    operate: DeviceState = content.get("operate")
+
+    await service.operate_self_camera(message.user_id, message.room_id, operate)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理操纵自己的麦克风
+async def handle_operate_self_mic(message: Dict, content: Dict):
+    operate: DeviceState = content.get("operate")
+
+    await service.operate_self_mic(message.user_id, message.room_id, operate)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理操纵自己麦克风权限申请
+async def handle_operate_self_mic_apply(message: Dict, content: Dict):
+    operate: Permission = content.get("operate")
+
+    await service.operate_self_mic_apply(message.user_id, message.room_id, operate)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理本地用户开始共享
+async def handle_start_share(message: Dict, content: Dict):
+    share_type: ShareType = content.get("share_type")
+
+    await service.start_share(message.user_id, message.room_id, share_type)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理本地用户停止共享
+async def handle_finish_share(message: Dict, content: Dict):
+    await service.finish_share(message.user_id, message.room_id)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理申请共享权限
-async def handle_share_permission_apply(content: Dict):
-    meeting_service = MeetingService()
-    user_id = content.get("user_id")
-    
-    await meeting_service.apply_share_permission(user_id)
-    
-    return BaseResponse()
+async def handle_share_permission_apply(message: Dict, content: Dict):
+    await service.share_permission_apply(message.user_id, message.room_id)
 
-# 处理操作其他用户的摄像头
-async def handle_operate_other_camera(content: Dict):
-    user_service = UserService()
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理操纵参会人的摄像头
+async def handle_operate_other_camera(message: Dict, content: Dict):
+    operate: DeviceState = content.get("operate")
     operate_user_id = content.get("operate_user_id")
-    operate = DeviceState(content.get("operate"))
-    
-    await user_service.update_camera_state(operate_user_id, operate)
-    
-    return BaseResponse()
 
-# 处理操作其他用户的麦克风
-async def handle_operate_other_mic(content: Dict):
-    user_service = UserService()
+    await service.operate_other_camera(message.user_id, message.room_id, operate_user_id, operate)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理操纵参会人的麦克风
+async def handle_operate_other_mic(message: Dict, content: Dict):
+    operate: DeviceState = content.get("operate")
     operate_user_id = content.get("operate_user_id")
-    operate = DeviceState(content.get("operate"))
-    
-    await user_service.update_mic_state(operate_user_id, operate)
-    
-    return BaseResponse()
 
-# 处理操作其他用户的共享权限
-async def handle_operate_other_share_permission(content: Dict):
-    user_service = UserService()
+    await service.operate_other_mic(message.user_id, message.room_id, operate_user_id, operate)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+
+# 处理操纵参会人屏幕共享权限
+async def handle_operate_other_share_permission(message: Dict, content: Dict):
+    operate = content.get("operate")
     operate_user_id = content.get("operate_user_id")
-    operate = Permission(content.get("operate"))
-    
-    await user_service.update_share_permission(operate_user_id, operate)
-    
-    return BaseResponse()
 
-# 处理全员禁言
-async def handle_operate_all_mic(content: Dict):
-    meeting_service = MeetingService()
-    room_id = content.get("room_id")
-    operate_self_mic_permission = Permission(content.get("operate_self_mic_permission"))
-    operate = DeviceState.Closed
-    
-    await meeting_service.mute_all(room_id, operate_self_mic_permission)
-    
-    return BaseResponse()
+    await service.operate_other_share_permission(message.user_id, message.room_id, operate_user_id, operate)
 
-# 处理主持人答复麦克风申请
-async def handle_operate_self_mic_permit(content: Dict):
-    meeting_service = MeetingService()
-    apply_user_id = content.get("apply_user_id")
-    permit = DeviceState(content.get("permit"))
-    
-    await meeting_service.permit_mic_apply(apply_user_id, permit)
-    
-    return BaseResponse()
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
 
-# 处理主持人答复共享权限申请
-async def handle_share_permission_permit(content: Dict):
-    meeting_service = MeetingService()
-    apply_user_id = content.get("apply_user_id")
-    permit = Permission(content.get("permit"))
-    
-    await meeting_service.permit_share_apply(apply_user_id, permit)
-    
-    return BaseResponse()
-'''
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 处理全员麦克风操作
+async def handle_operate_all_mic(message: Dict, content: Dict):
+    operate_self_mic_permission: Permission = content.get("operate_self_mic_permission")  # 全员静音后，是否允许房间内观众自行开麦
+    operate: DeviceState = content.get("operate")  # 全员静音或取消静音
+
+    await service.operate_all_mic(message.user_id, message.room_id, operate_self_mic_permission, operate)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 观众请求麦克风使用权限后, 主持人答复
+async def handle_operate_self_mic_permit(message: Dict, content: Dict):
+    apply_user_id: str = content.get("apply_user_id")  # 申请麦克风使用权限的用户ID
+    permit: Permission = content.get("permit")  # 主持人是否同意麦克风使用权限
+
+    await service.operate_self_mic_permit(message.user_id, message.room_id, apply_user_id, permit)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
+# 观众请求屏幕共享权限后, 主持人答复
+async def handle_share_permission_permit(message: Dict, content: Dict):
+    apply_user_id: str = content.get("apply_user_id")  # 申请屏幕共享权限的用户ID
+    permit: Permission = content.get("permit")  # 主持人是否同意屏幕共享权限
+
+    await service.operate_self_share_permission_permit(message.user_id, message.room_id, apply_user_id, permit)
+
+    res = ResponseMessageBase(
+        request_id=message.request_id,
+        event_name=message.event_name,
+        response=None,
+    )
+
+    body = ReturnMessageBase(
+        AppId=message.app_id,
+        To=message.user_id,
+        Message=res.model_dump_json(),
+    )
+
+    response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
 
 # 处理程序映射
 EVENT_HANDLERS = {
     "vcJoinRoom": handle_join_room,
     "vcLeaveRoom": handle_leave_room,
     "vcFinishRoom": handle_finish_room,
-    # "vcResync": handle_resync,
-    # "vcGetUserList": handle_get_user_list,
-    # "vcOperateSelfCamera": handle_operate_self_camera,
-    # "vcOperateSelfMic": handle_operate_self_mic,
-    # "vcOperateSelfMicApply": handle_operate_self_mic_apply,
-    # "vcStartShare": handle_start_share,
-    # "vcFinishShare": handle_finish_share,
-    # "vcSharePermissionApply": handle_share_permission_apply,
-    # "vcOperateOtherCamera": handle_operate_other_camera,
-    # "vcOperateOtherMic": handle_operate_other_mic,
-    # "vcOperateOtherSharePermission": handle_operate_other_share_permission,
-    # "vcOperateAllMic": handle_operate_all_mic,
-    # "vcOperateSelfMicPermit": handle_operate_self_mic_permit,
-    # "vcSharePermissionPermit": handle_share_permission_permit,
+    "vcResync": handle_resync,
+    "vcGetUserList": handle_get_user_list,
+    "vcOperateSelfCamera": handle_operate_self_camera,
+    "vcOperateSelfMic": handle_operate_self_mic,
+    "vcOperateSelfMicApply": handle_operate_self_mic_apply,
+    "vcStartShare": handle_start_share,
+    "vcFinishShare": handle_finish_share,
+    "vcSharePermissionApply": handle_share_permission_apply,
+    "vcOperateOtherCamera": handle_operate_other_camera,
+    "vcOperateOtherMic": handle_operate_other_mic,
+    "vcOperateOtherSharePermission": handle_operate_other_share_permission,
+    "vcOperateAllMic": handle_operate_all_mic,
+    "vcOperateSelfMicPermit": handle_operate_self_mic_permit,
+    "vcSharePermissionPermit": handle_share_permission_permit,
 }

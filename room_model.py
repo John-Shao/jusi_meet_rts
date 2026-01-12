@@ -1,10 +1,11 @@
-from typing import Dict, OrderedDict, Any
-from schemas import *
+from typing import List, Dict, OrderedDict, Any
+from schemas import MeetingUser, MeetingRoomState, UserRole
 from user_model import UserModel
 from utils import current_timestamp_s
 
 # 房间模型
 class RoomModel:
+    # 构造函数
     def __init__(self,
                  app_id: str,
                  room_id: str,
@@ -14,18 +15,38 @@ class RoomModel:
             app_id = app_id,
             room_id = room_id,
             room_name = f"meet_{room_id}",
-            host_user_id = host_user.user_id,
-            host_user_name = host_user.user_name,
+            host_user_id = host_user.id,
+            host_user_name = host_user.name,
             start_time = current_timestamp_s(),
             base_time= current_timestamp_s(),
             )
         self._users = OrderedDict()
         self.add_user(host_user, UserRole.HOST)
 
+    # 析构函数
+    def __del__(self):
+        self._users.clear()
+
+
+    # 获取房间
+    @property
+    def model(self) -> MeetingRoomState:
+        return self._room
+
+    # 主持人ID
+    @property
+    def host_uid(self) -> str:
+        return self._room.host_user_id
+    
+    # 获取用户数量
+    @property
+    def user_count(self) -> int:
+        return len(self._users)
+
     # 用户进入房间
     def add_user(self, user: UserModel, role: UserRole = UserRole.VISITOR) -> None:
         user.join_room(self._room.room_id, role)
-        self._users[user.user_id] = user
+        self._users[user.id] = user
 
     # 用户退出房间
     def remove_user(self, user_id: str) -> None:
@@ -35,12 +56,16 @@ class RoomModel:
             if self._room.host_user_id == user_id:
                 self._room.host_user_id = next(iter(self._users), None)
                 if self._room.host_user_id:
-                    self._room.host_user_name = self._users[self._room.host_user_id].user_name
+                    self._room.host_user_name = self._users[self._room.host_user_id].name
                     self._users[self._room.host_user_id].set_user_role(UserRole.HOST)
 
     # 检查用户是否在房间中
     def user_in_room(self, user_id: str) -> bool:
         return user_id in self._users
+    
+    # 获取用户
+    def get_user(self, user_id: str) -> UserModel:
+        return self._users.get(user_id)
 
     # 转换成字典对象
     def to_dict(self) -> Dict[str, Any]:
@@ -66,5 +91,5 @@ class RoomModel:
         }
     
     # 获取用户列表
-    def get_user_list(self) -> List[Dict]:
-        return [u.to_dict() for u in self._users.values()]
+    def get_user_list(self) -> List[MeetingUser]:
+        return [u.model for u in self._users.values()]

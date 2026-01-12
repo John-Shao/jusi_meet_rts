@@ -54,7 +54,7 @@ class RequestMessageBase(BaseModel):
     login_token: Optional[str]
     request_id: str
     event_name: str
-    content: str
+    content: str = "{}"
 
 # 返回消息模型
 class ReturnMessageBase(BaseModel):
@@ -72,7 +72,7 @@ class ResponseMessageBase(BaseModel):
     event_name: str
     message: str = "ok"  # 详细错误信息
     timestamp: int = Field(default_factory=lambda: current_timestamp_ms())  # 时间戳ms
-    response: Optional[Dict] = {}
+    response: Optional[Any] = {}
 
 # 会议房间状态
 class MeetingRoomState(BaseModel):
@@ -121,3 +121,14 @@ class JoinMeetingRoomRes(BaseModel):
     wb_room_id: str
     wb_user_id: str
     wb_token: str
+
+# 断线之后重连响应
+class ReconnectRes(BaseModel):
+    room: MeetingRoomState
+    user: MeetingUser
+    user_list: List[MeetingUser]
+
+# 获取用户列表响应
+class GetUserListRes(BaseModel):
+    user_count: int
+    user_list: List[MeetingUser]
