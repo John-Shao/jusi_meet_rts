@@ -35,7 +35,7 @@ async def handle_rts_message(request: Request, background_tasks: BackgroundTasks
         if binary:
             logger.warning(f"收到二进制消息，丢弃: {msg_str}")
             return ResponseMessageBase(
-                status_code=400,
+                code=400,
                 request_id=message.request_id,
                 event_name=message.event_name,
                 content="binary message not supported",
@@ -45,7 +45,7 @@ async def handle_rts_message(request: Request, background_tasks: BackgroundTasks
         if signature != "temp_server_signature":
             logger.warning(f"收到无效签名消息: {msg_str}")
             return ResponseMessageBase(
-                status_code=401,
+                code=401,
                 request_id=message.request_id,
                 event_name=message.event_name,
                 content="invalid signature",
@@ -57,7 +57,7 @@ async def handle_rts_message(request: Request, background_tasks: BackgroundTasks
     except json.JSONDecodeError:
         logger.error(f"JSON解析错误: {msg_str}")
         return ResponseMessageBase(
-            status_code=402,
+            code=402,
             request_id=message.request_id,
             event_name=message.event_name,
             content="invalid message format",
@@ -67,7 +67,7 @@ async def handle_rts_message(request: Request, background_tasks: BackgroundTasks
     background_tasks.add_task(send_return_message, message)
     
     return ResponseMessageBase(
-        status_code=200,
+        code=200,
         request_id=message.request_id,
         event_name=message.event_name,
         content="ok",

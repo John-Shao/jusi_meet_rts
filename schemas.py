@@ -56,7 +56,7 @@ class RequestMessageBase(BaseModel):
     event_name: str
     content: str = "{}"
 
-# 返回消息模型
+# 返回消息模型（https://www.volcengine.com/docs/6348/1164061?lang=zh）
 class ReturnMessageBase(BaseModel):
     AppId: str
     From: str = "server"
@@ -64,7 +64,7 @@ class ReturnMessageBase(BaseModel):
     Binary: bool = False
     Message: Optional[Any] = {}
 
-# 响应消息模型
+# 响应消息模型（ReturnMessageBase.Message，参考 rtsTypes.ts）
 class ResponseMessageBase(BaseModel):
     message_type: str = 'return'
     request_id: str
@@ -132,3 +132,43 @@ class ReconnectRes(BaseModel):
 class GetUserListRes(BaseModel):
     user_count: int
     user_list: List[MeetingUser]
+
+
+# 回调通知
+class CallbackNotification(BaseModel):
+    EventType: str
+    EventData: str
+    EventTime: str
+    EventId: str
+    AppId: str
+    Version: str
+    Signature: str
+    Nonce: str
+
+# 转推流状态变更回调事件数据
+class RelayStreamStateChanged(BaseModel):
+    RoomId: str
+    TaskId: str
+    UserId: str
+    StreamUrl: str
+    Status: int
+    StartTimeStamp: Optional[int] = 0
+    Msg: Optional[str] = ""
+    Reason: Optional[str] = ""
+
+# 用户加入房间回调事件数据
+class UserJoinRoom(BaseModel):
+    RoomId: str
+    UserId: str
+    DeviceType: str
+    Timestamp: Optional[int] = 0
+    ExtraInfo: Optional[str] = ""
+
+# 用户离开房间回调事件数据
+class UserLeaveRoom(BaseModel):
+    RoomId: str
+    UserId: str
+    DeviceType: str
+    Reason: Optional[str] = ""
+    Timestamp: Optional[int] = 0
+    Duration: Optional[int] = 0
