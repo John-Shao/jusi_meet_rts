@@ -26,7 +26,6 @@ async def handle_rts_callback(request: Request, background_tasks: BackgroundTask
     
     # 手动解析JSON，不管Content-Type头是什么
     request_data = json.loads(body.decode("utf-8"))
-    logger.debug(f"收到事件回调: {json.dumps(request_data, indent=2, ensure_ascii=False)}")
 
     notify_msg = CallbackNotification(**request_data)
     event_data = json.loads(notify_msg.EventData)
