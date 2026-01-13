@@ -56,15 +56,23 @@ class RequestMessageBase(BaseModel):
     event_name: str
     content: str = "{}"
 
-# 返回消息模型（https://www.volcengine.com/docs/6348/1164061?lang=zh）
-class ReturnMessageBase(BaseModel):
+# 房间外点对点消息模型（https://www.volcengine.com/docs/6348/1164061?lang=zh）
+class UnicastMessageBase(BaseModel):
     AppId: str
     From: str = "server"
     To: str
     Binary: bool = False
     Message: Optional[Any] = {}
 
-# 响应消息模型（ReturnMessageBase.Message，参考 rtsTypes.ts）
+# 房间内广播消息 SendBroadcast（https://www.volcengine.com/docs/6348/1164063?lang=zh）
+class BroadcastMessageBase(BaseModel):
+    AppId: str
+    RoomId: str
+    From: str = "server"
+    Binary: bool = False
+    Message: Optional[Any] = {}
+
+# 响应消息模型（UnicastMessageBase.Message，参考 rtsTypes.ts）
 class ResponseMessageBase(BaseModel):
     message_type: str = 'return'
     request_id: str
@@ -141,12 +149,13 @@ class CallbackNotification(BaseModel):
     EventTime: str
     EventId: str
     AppId: str
+    BusinessId: Optional[str] = ""
     Version: str
     Signature: str
     Nonce: str
 
 # 转推流状态变更回调事件数据
-class RelayStreamStateChanged(BaseModel):
+class RelayStreamStateChangedEvent(BaseModel):
     RoomId: str
     TaskId: str
     UserId: str
@@ -157,18 +166,22 @@ class RelayStreamStateChanged(BaseModel):
     Reason: Optional[str] = ""
 
 # 用户加入房间回调事件数据
-class UserJoinRoom(BaseModel):
+class UserJoinRoomEvent(BaseModel):
     RoomId: str
     UserId: str
     DeviceType: str
+    MediaProcessingType: Optional[int] = 0
     Timestamp: Optional[int] = 0
     ExtraInfo: Optional[str] = ""
+    UserExtraInfo: Optional[str] = ""
 
 # 用户离开房间回调事件数据
-class UserLeaveRoom(BaseModel):
+class UserLeaveRoomEvent(BaseModel):
     RoomId: str
     UserId: str
     DeviceType: str
+    MediaProcessingType: Optional[int] = 0
     Reason: Optional[str] = ""
-    Timestamp: Optional[int] = 0
     Duration: Optional[int] = 0
+    Timestamp: Optional[int] = 0
+    ExtraInfo: Optional[str] = ""

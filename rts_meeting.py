@@ -96,7 +96,7 @@ async def send_return_message(message: RequestMessageBase):
         logger.warning(f"收到未知事件消息: {message}")
 
 # 处理加入房间事件
-async def handle_join_room(message: Dict, content: Dict):
+async def handle_join_room(message: RequestMessageBase, content: Dict):
     user_name = content.get("user_name")
     camera = DeviceState(content.get("camera", DeviceState.CLOSED))
     mic = DeviceState(content.get("mic", DeviceState.CLOSED))
@@ -132,7 +132,7 @@ async def handle_join_room(message: Dict, content: Dict):
         response=response,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -143,7 +143,7 @@ async def handle_join_room(message: Dict, content: Dict):
 
 
 # 处理离开房间事件
-async def handle_leave_room(message: Dict, content: Dict):
+async def handle_leave_room(message: RequestMessageBase, content: Dict):
     await service.leave_room(message.user_id, message.room_id)
 
     res = ResponseMessageBase(
@@ -152,7 +152,7 @@ async def handle_leave_room(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -162,7 +162,7 @@ async def handle_leave_room(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理关闭房间事件
-async def handle_finish_room(message: Dict, content: Dict):
+async def handle_finish_room(message: RequestMessageBase, content: Dict):
     await service.finish_room(message.user_id, message.room_id)
 
     res = ResponseMessageBase(
@@ -171,7 +171,7 @@ async def handle_finish_room(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -181,7 +181,7 @@ async def handle_finish_room(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理重连同步
-async def handle_resync(message: Dict, content: Dict):
+async def handle_resync(message: RequestMessageBase, content: Dict):
     room: RoomModel = await service.get_room(message.room_id)
     user: UserModel = room.get_user(message.user_id)
 
@@ -197,7 +197,7 @@ async def handle_resync(message: Dict, content: Dict):
         response=response,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -207,7 +207,7 @@ async def handle_resync(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理获取用户列表
-async def handle_get_user_list(message: Dict, content: Dict):
+async def handle_get_user_list(message: RequestMessageBase, content: Dict):
     room: RoomModel = await service.get_room(message.room_id)
     user: UserModel = room.get_user(message.user_id)
 
@@ -222,7 +222,7 @@ async def handle_get_user_list(message: Dict, content: Dict):
         response=response,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -232,7 +232,7 @@ async def handle_get_user_list(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵自己的摄像头
-async def handle_operate_self_camera(message: Dict, content: Dict):
+async def handle_operate_self_camera(message: RequestMessageBase, content: Dict):
     operate: DeviceState = content.get("operate")
 
     await service.operate_self_camera(message.user_id, message.room_id, operate)
@@ -243,7 +243,7 @@ async def handle_operate_self_camera(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -253,7 +253,7 @@ async def handle_operate_self_camera(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵自己的麦克风
-async def handle_operate_self_mic(message: Dict, content: Dict):
+async def handle_operate_self_mic(message: RequestMessageBase, content: Dict):
     operate: DeviceState = content.get("operate")
 
     await service.operate_self_mic(message.user_id, message.room_id, operate)
@@ -264,7 +264,7 @@ async def handle_operate_self_mic(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -274,7 +274,7 @@ async def handle_operate_self_mic(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵自己麦克风权限申请
-async def handle_operate_self_mic_apply(message: Dict, content: Dict):
+async def handle_operate_self_mic_apply(message: RequestMessageBase, content: Dict):
     operate: Permission = content.get("operate")
 
     await service.operate_self_mic_apply(message.user_id, message.room_id, operate)
@@ -285,7 +285,7 @@ async def handle_operate_self_mic_apply(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -295,7 +295,7 @@ async def handle_operate_self_mic_apply(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理本地用户开始共享
-async def handle_start_share(message: Dict, content: Dict):
+async def handle_start_share(message: RequestMessageBase, content: Dict):
     share_type: ShareType = content.get("share_type")
 
     await service.start_share(message.user_id, message.room_id, share_type)
@@ -306,7 +306,7 @@ async def handle_start_share(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -316,7 +316,7 @@ async def handle_start_share(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理本地用户停止共享
-async def handle_finish_share(message: Dict, content: Dict):
+async def handle_finish_share(message: RequestMessageBase, content: Dict):
     await service.finish_share(message.user_id, message.room_id)
 
     res = ResponseMessageBase(
@@ -325,7 +325,7 @@ async def handle_finish_share(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -335,7 +335,7 @@ async def handle_finish_share(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理申请共享权限
-async def handle_share_permission_apply(message: Dict, content: Dict):
+async def handle_share_permission_apply(message: RequestMessageBase, content: Dict):
     await service.share_permission_apply(message.user_id, message.room_id)
 
     res = ResponseMessageBase(
@@ -344,7 +344,7 @@ async def handle_share_permission_apply(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -354,7 +354,7 @@ async def handle_share_permission_apply(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵参会人的摄像头
-async def handle_operate_other_camera(message: Dict, content: Dict):
+async def handle_operate_other_camera(message: RequestMessageBase, content: Dict):
     operate: DeviceState = content.get("operate")
     operate_user_id = content.get("operate_user_id")
 
@@ -366,7 +366,7 @@ async def handle_operate_other_camera(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -376,7 +376,7 @@ async def handle_operate_other_camera(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵参会人的麦克风
-async def handle_operate_other_mic(message: Dict, content: Dict):
+async def handle_operate_other_mic(message: RequestMessageBase, content: Dict):
     operate: DeviceState = content.get("operate")
     operate_user_id = content.get("operate_user_id")
 
@@ -388,7 +388,7 @@ async def handle_operate_other_mic(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -399,7 +399,7 @@ async def handle_operate_other_mic(message: Dict, content: Dict):
 
 
 # 处理操纵参会人屏幕共享权限
-async def handle_operate_other_share_permission(message: Dict, content: Dict):
+async def handle_operate_other_share_permission(message: RequestMessageBase, content: Dict):
     operate = content.get("operate")
     operate_user_id = content.get("operate_user_id")
 
@@ -411,7 +411,7 @@ async def handle_operate_other_share_permission(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -421,7 +421,7 @@ async def handle_operate_other_share_permission(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理全员麦克风操作
-async def handle_operate_all_mic(message: Dict, content: Dict):
+async def handle_operate_all_mic(message: RequestMessageBase, content: Dict):
     operate_self_mic_permission: Permission = content.get("operate_self_mic_permission")  # 全员静音后，是否允许房间内观众自行开麦
     operate: DeviceState = content.get("operate")  # 全员静音或取消静音
 
@@ -433,7 +433,7 @@ async def handle_operate_all_mic(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -443,7 +443,7 @@ async def handle_operate_all_mic(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 观众请求麦克风使用权限后, 主持人答复
-async def handle_operate_self_mic_permit(message: Dict, content: Dict):
+async def handle_operate_self_mic_permit(message: RequestMessageBase, content: Dict):
     apply_user_id: str = content.get("apply_user_id")  # 申请麦克风使用权限的用户ID
     permit: Permission = content.get("permit")  # 主持人是否同意麦克风使用权限
 
@@ -455,7 +455,7 @@ async def handle_operate_self_mic_permit(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
@@ -465,7 +465,7 @@ async def handle_operate_self_mic_permit(message: Dict, content: Dict):
     logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 观众请求屏幕共享权限后, 主持人答复
-async def handle_share_permission_permit(message: Dict, content: Dict):
+async def handle_share_permission_permit(message: RequestMessageBase, content: Dict):
     apply_user_id: str = content.get("apply_user_id")  # 申请屏幕共享权限的用户ID
     permit: Permission = content.get("permit")  # 主持人是否同意屏幕共享权限
 
@@ -477,7 +477,7 @@ async def handle_share_permission_permit(message: Dict, content: Dict):
         response=None,
     )
 
-    body = ReturnMessageBase(
+    body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
         Message=res.model_dump_json(),
