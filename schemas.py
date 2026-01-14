@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from utils import current_timestamp_ms, current_timestamp_s
 
+# ================================== Meeting ==================================
 
 # 用户角色枚举
 class UserRole(IntEnum):
@@ -62,7 +63,7 @@ class UnicastMessageBase(BaseModel):
     From: str = "server"
     To: str
     Binary: bool = False
-    Message: Optional[Any] = {}
+    Message: Optional[str] = "{}"
 
 # 房间内广播消息 SendBroadcast（https://www.volcengine.com/docs/6348/1164063?lang=zh）
 class BroadcastMessageBase(BaseModel):
@@ -70,7 +71,7 @@ class BroadcastMessageBase(BaseModel):
     RoomId: str
     From: str = "server"
     Binary: bool = False
-    Message: Optional[Any] = {}
+    Message: Optional[str] = "{}"
 
 # 响应消息模型（UnicastMessageBase.Message，参考 rtsTypes.ts）
 class ResponseMessageBase(BaseModel):
@@ -141,9 +142,10 @@ class GetUserListRes(BaseModel):
     user_count: int
     user_list: List[MeetingUser]
 
+# ================================== Callback ==================================
 
-# 回调通知
-class CallbackNotification(BaseModel):
+# RTS回调通知
+class RtsCallback(BaseModel):
     EventType: str
     EventData: str
     EventTime: str
@@ -153,17 +155,6 @@ class CallbackNotification(BaseModel):
     Version: str
     Signature: str
     Nonce: str
-
-# 转推流状态变更回调事件数据
-class RelayStreamStateChangedEvent(BaseModel):
-    RoomId: str
-    TaskId: str
-    UserId: str
-    StreamUrl: str
-    Status: int
-    StartTimeStamp: Optional[int] = 0
-    Msg: Optional[str] = ""
-    Reason: Optional[str] = ""
 
 # 用户加入房间回调事件数据
 class UserJoinRoomEvent(BaseModel):
@@ -185,3 +176,23 @@ class UserLeaveRoomEvent(BaseModel):
     Duration: Optional[int] = 0
     Timestamp: Optional[int] = 0
     ExtraInfo: Optional[str] = ""
+
+
+# ================================== Inform ==================================
+
+# RTS通知消息
+class RtsInform(BaseModel):
+    message_type: str = 'inform'
+    event: str
+    data: Optional[Any] = {}
+    timestamp: int = Field(default_factory=lambda: current_timestamp_ms())  # 时间戳ms
+
+# 用户进入房间通知（vcOnJoinRoom）
+class InformVcOnJoinRoom(BaseModel):
+    user: Dict[str, Any]
+    user_count: int
+
+# 用户离开房间通知（vcOnLeaveRoom）
+class InformVcOnLeaveRoom(BaseModel):
+    user: Dict[str, Any]
+    user_count: int

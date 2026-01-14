@@ -12,6 +12,11 @@ class RtsService:
     async def get_room(self, room_id: str) -> RoomModel:
         return self._rooms.get(room_id, None)
 
+    # 获取房间内的用户列表
+    async def get_room_users(self, room_id: str) -> List[UserModel]:
+        room = self._rooms.get(room_id, None)
+        return room.get_user_list() if room else []
+
     # 用户进入房间
     async def join_room(self, app_id: str, user: UserModel, room_id: str) -> RoomModel:
         if room_id not in self._rooms:
