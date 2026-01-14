@@ -7,6 +7,7 @@ from rts_meeting import meeting_router
 from rts_callback import callback_router
 from config import settings
 from log_mw import RequestLoggingMiddleware
+import uvicorn
 
 
 # 配置日志
@@ -71,8 +72,8 @@ app.include_router(callback_router, prefix=settings.api_vstr, tags=["Callback RT
 async def root():
     return {"message": "JUSI Meeting RTS Server"}
 
+# 启动应用
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(
         "main:app",
         host=settings.bind_addr,
