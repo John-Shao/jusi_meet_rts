@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 callback_router = APIRouter()
 
 @callback_router.post("/rts/callback", response_model=ResponseMessageBase)
-async def handle_rts_callback(request: Request, background_tasks: BackgroundTasks):
+async def handle_rts_callback(request: Request):
     # 手动获取请求体
     body = await request.body()
     
