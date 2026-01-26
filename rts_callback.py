@@ -1,10 +1,12 @@
-from email import message
+'''
+veRTC房间事件回调处理程序
+回调设置：https://console.volcengine.com/rtc/cloudRTC?appId=693b6cadaecbdd017582aa25&tab=callback
+'''
 import logging
 from fastapi import (
     APIRouter,
     Request,
     Response,
-    BackgroundTasks,
     )
 import json
 from typing import Dict
