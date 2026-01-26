@@ -1,5 +1,5 @@
 '''
-会议管理系统，火山veRTC Demo的业务服务器
+会议管理系统，与火山veRTC Meeting Demo配套的业务服务器
 该服务的地址通过登录服务的setAppInfo接口返回给前端
 '''
 import logging
