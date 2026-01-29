@@ -58,6 +58,9 @@ async def handle_rts_message(request: Request, background_tasks: BackgroundTasks
         # 解析message字段
         message = RequestMessageBase(**json.loads(msg_str))
         logger.debug(f"通知内容: {json.dumps(message.model_dump(), indent=2, ensure_ascii=False)}")
+        # 规范化content字段
+        if 'content' not in message.model_dump() or message.content in ("", "null"):
+            message.content = "{}"
     except json.JSONDecodeError:
         logger.error(f"JSON解析错误: {msg_str}")
         return ResponseMessageBase(
