@@ -22,9 +22,6 @@ class UserModel:
             is_silence = is_silence,
         )
 
-    @property
-    def model(self) -> MeetingUser:
-        return self._user
 
     @property
     def id(self) -> str:
@@ -77,17 +74,27 @@ class UserModel:
 
     # 转换成字典对象
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "user_id": self._user.user_id,
-            "user_name": self._user.user_name,
-            "user_role": int(self._user.user_role),
-            "camera": int(self._user.camera),
-            "mic": int(self._user.mic),
-            "join_time": self._user.join_time,
-            "room_id": self._user.room_id,
-            "share_permission": int(self._user.share_permission),
-            "share_status": int(self._user.share_status),
-            "share_type": int(self._user.share_type),
-            "operate_camera_permission": int(self._user.operate_camera_permission),
-            "operate_mic_permission": int(self._user.operate_mic_permission),
-        }
+        return self._user.model_dump()
+
+    # 从字典对象创建用户实例
+    @staticmethod
+    def from_dict(data: Dict[str, Any]) -> 'UserModel':
+        """从字典创建UserModel实例"""
+        user = UserModel(
+            user_id=data["user_id"],
+            user_name=data["user_name"],
+            device_id=data.get("device_id", ""),
+            camera=DeviceState(data.get("camera", DeviceState.OPEN)),
+            mic=DeviceState(data.get("mic", DeviceState.OPEN)),
+            is_silence=SilenceState(data.get("is_silence", SilenceState.NOT_SILENT)) if data.get("is_silence") is not None else None,
+        )
+        # 设置其他属性
+        user._user.user_role = UserRole(data.get("user_role", UserRole.VISITOR))
+        user._user.join_time = data.get("join_time", 0)
+        user._user.room_id = data.get("room_id", "")
+        user._user.share_permission = Permission(data.get("share_permission", Permission.HAS_PERMISSION))
+        user._user.share_status = ShareStatus(data.get("share_status", ShareStatus.NOT_SHARING))
+        user._user.share_type = ShareType(data.get("share_type", ShareType.SCREEN))
+        user._user.operate_camera_permission = Permission(data.get("operate_camera_permission", Permission.HAS_PERMISSION))
+        user._user.operate_mic_permission = Permission(data.get("operate_mic_permission", Permission.HAS_PERMISSION))
+        return user

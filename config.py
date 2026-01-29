@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     rtc_app_id: str = ""
     rtc_app_key: str = ""
 
+    # Redis配置
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: str = ""
+    redis_prefix: str = "jusi_meet:"
+
     # 其他配置项
     token_expire_ts: int = 24 * 60 * 60
     app_name: str = "JUSI RTS"

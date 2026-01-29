@@ -124,10 +124,8 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
     wb_user_id = f"whiteboard_{message.user_id}"
     
     response = JoinMeetingRoomRes(
-        room = room.model,
-        user= user.model,
         user_list = room.get_user_list(),
-        token = generate_token(user._user.user_id, message.room_id),
+        token = generate_token(user.id, message.room_id),
         wb_room_id = wb_room_id,
         wb_user_id = wb_user_id,
         wb_token = generate_token(wb_user_id, wb_room_id),
@@ -193,8 +191,8 @@ async def handle_resync(message: RequestMessageBase, content: Dict):
     user: UserModel = room.get_user(message.user_id)
 
     response = ReconnectRes(
-        room = room.model,
-        user= user.model,
+        room = room.to_dict(),
+        user= user.to_dict(),
         user_list = room.get_user_list(),
     )
 

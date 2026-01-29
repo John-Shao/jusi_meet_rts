@@ -70,7 +70,7 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
 
     # 广播通知房间内的用户
     event = InformVcOnJoinRoom(
-        user=user.model.model_dump(),
+        user=user.to_dict(),
         user_count=room.user_count,
     )
 
@@ -121,7 +121,7 @@ async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
 
     # 广播通知房间内的用户
     event = InformVcOnLeaveRoom(
-        user=user.model.model_dump(),
+        user=user.to_dict(),
         user_count=room.user_count,
     )
 
