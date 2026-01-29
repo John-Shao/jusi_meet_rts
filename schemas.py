@@ -84,7 +84,7 @@ class ResponseMessageBase(BaseModel):
     response: Optional[Any] = {}
 
 # 会议房间状态
-class MeetingRoomState(BaseModel):
+class RoomState(BaseModel):
     app_id: str
     room_id: str
     room_name: Optional[str] = ""
@@ -100,10 +100,9 @@ class MeetingRoomState(BaseModel):
     base_time: Optional[int] = 0  # 服务器时间，时间戳，单位秒
     record_status: Optional[RecordStatus] = RecordStatus.NOT_RECORDING  # 录制状态
     record_start_time: Optional[int] = 0  # 最近一次开始录制的时间
-    status: Optional[int] = 1
 
 # 会议用户信息
-class MeetingUser(BaseModel):
+class UserModel(BaseModel):
     user_id: str
     user_name: str
     user_role: Optional[UserRole] = UserRole.VISITOR
@@ -118,14 +117,13 @@ class MeetingUser(BaseModel):
     operate_mic_permission: Optional[Permission] = Permission.HAS_PERMISSION     # 操作自己麦克风权限
     # 官方demo中没有的数据 
     is_silence: Optional[SilenceState] = SilenceState.NOT_SILENT  # 是否静音
-    device_id: Optional[str] = ""
 
 # 加入房间响应
 class JoinMeetingRoomRes(BaseModel):
     nts: int = Field(default_factory=lambda: current_timestamp_s())  # 时间戳ms
-    room: MeetingRoomState
-    user: MeetingUser
-    user_list: List[MeetingUser]
+    room: RoomState
+    user: UserModel
+    user_list: List[UserModel]
     token: str
     wb_room_id: str
     wb_user_id: str
@@ -133,14 +131,14 @@ class JoinMeetingRoomRes(BaseModel):
 
 # 断线之后重连响应
 class ReconnectRes(BaseModel):
-    room: MeetingRoomState
-    user: MeetingUser
-    user_list: List[MeetingUser]
+    room: RoomState
+    user: UserModel
+    user_list: List[UserModel]
 
 # 获取用户列表响应
 class GetUserListRes(BaseModel):
     user_count: int
-    user_list: List[MeetingUser]
+    user_list: List[UserModel]
 
 # ================================== Callback ==================================
 
@@ -196,3 +194,72 @@ class InformVcOnJoinRoom(BaseModel):
 class InformVcOnLeaveRoom(BaseModel):
     user: Dict[str, Any]
     user_count: int
+
+
+# ================================== Meeting Manager ==================================
+
+# 会议管理消息类型
+class ManagerMessageType:
+    BookMeeting = "bookMeeting"           # 预定会议
+    CancelMeeting = "cancelMeeting"       # 取消会议
+    GetMyMeetings = "getMyMeetings"       # 查询我的会议
+
+# 预定会议请求
+class BookMeetingRequest(BaseModel):
+    app_id: str
+    room_id: str
+    room_name: Optional[str] = None
+    host_user_id: str
+    host_user_name: str
+
+# 预定会议响应
+class BookMeetingResponse(BaseModel):
+    code: int  # 200:成功, 400:会议已存在, 500:服务器错误
+    room_id: str
+    room_name: str
+    message: Optional[str] = None
+
+# 取消会议请求
+class CancelMeetingRequest(BaseModel):
+    app_id: str
+    room_id: str
+    user_id: str  # 操作用户ID，必须是主持人
+
+# 取消会议响应
+class CancelMeetingResponse(BaseModel):
+    code: int  # 200:成功, 403:权限不足, 404:房间不存在, 409:会议中有人, 500:服务器错误
+    room_id: str
+    message: Optional[str] = None
+
+# 查询我的会议请求
+class GetMyMeetingsRequest(BaseModel):
+    app_id: str
+    user_id: str
+
+# 会议简要信息
+class MeetingInfo(BaseModel):
+    room_id: str
+    room_name: str
+    host_user_id: str
+    host_user_name: str
+    start_time: int
+    user_count: int  # 当前房间人数
+
+# 查询我的会议响应
+class GetMyMeetingsResponse(BaseModel):
+    code: int  # 200:成功, 500:服务器错误
+    meetings: List[MeetingInfo]
+    total: int
+    message: Optional[str] = None
+
+# 检查房间是否存在请求
+class CheckRoomRequest(BaseModel):
+    app_id: str
+    room_id: str
+
+# 检查房间是否存在响应
+class CheckRoomResponse(BaseModel):
+    code: int  # 200:成功, 500:服务器错误
+    room_id: str
+    exists: bool
+    message: Optional[str] = None

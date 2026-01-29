@@ -11,11 +11,12 @@ from fastapi import (
 import json
 from typing import Dict
 from schemas import *
-from user_model import UserModel
-from room_model import RoomModel
+from meeting_member import MeetingMember
+from meeting_room import MeetingRoom
 from utils import generate_token
-from rts_service import service
+from rts_service import rtsService
 from vertc_service import rtc_service
+from mysql_client import mysql_client
 
 
 logger = logging.getLogger(__name__)
@@ -50,21 +51,24 @@ async def handle_rts_callback(request: Request):
 # 处理用户加入房间事件
 async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
     rts_event = UserJoinRoomEvent(**event_data)
-    '''
-    if not ujr_event.UserId.startswith("jusi_"):
-        return  # 非jusi设备，不处理
-    '''    
-    user = UserModel(
+
+    # 从数据库查询用户名（异步）
+    user_name = await mysql_client.get_user_name(rts_event.UserId)
+    if not user_name:
+        user_name = rts_event.UserId  # 查询失败时使用 user_id 作为默认值
+        logger.warning(f"查询用户名失败，使用默认值: user_id={rts_event.UserId}")
+
+    user_model = UserModel(
         user_id=rts_event.UserId,
-        device_id=rts_event.UserId[5:] if rts_event.UserId.startswith("jusi_") else rts_event.UserId,
-        user_name=rts_event.UserId,
+        user_name=user_name,
         camera=DeviceState.OPEN,
         mic=DeviceState.OPEN,
         is_silence=SilenceState.NOT_SILENT,
     )
+    user = MeetingMember(user_model)
 
     # 将用户加入房间
-    room: RoomModel = await service.join_room(notify_msg.AppId, user, rts_event.RoomId)
+    room: MeetingRoom = await rtsService.join_room(notify_msg.AppId, user, rts_event.RoomId)
     if room.user_count == 1:
         return  # 如果是第一个用户加入房间，则不需要广播通知
 
@@ -96,25 +100,27 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
 # 处理用户离开房间事件
 async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
     rts_event = UserLeaveRoomEvent(**event_data)
-    '''
-    if not ujr_event.UserId.startswith("jusi_"):
-        return  # 非jusi设备，不处理
-    '''    
-    user = UserModel(
+    # 从数据库查询用户名（异步）
+    user_name = await mysql_client.get_user_name(rts_event.UserId)
+    if not user_name:
+        user_name = rts_event.UserId  # 查询失败时使用 user_id 作为默认值
+        logger.warning(f"查询用户名失败，使用默认值: user_id={rts_event.UserId}")
+
+    user_model = UserModel(
         user_id=rts_event.UserId,
-        device_id=rts_event.UserId[5:] if rts_event.UserId.startswith("jusi_") else rts_event.UserId,
-        user_name=rts_event.UserId,
+        user_name=user_name,
         camera=DeviceState.OPEN,
         mic=DeviceState.OPEN,
         is_silence=SilenceState.NOT_SILENT,
     )
+    user = MeetingMember(user_model)
 
-    room: RoomModel = await service.get_room(rts_event.RoomId)
+    room: MeetingRoom = await rtsService.get_room(rts_event.RoomId)
     if not room:
         return  # 房间不存在，不处理
 
     # 将用户移出房间
-    await service.leave_room(rts_event.UserId, rts_event.RoomId)
+    await rtsService.leave_room(rts_event.UserId, rts_event.RoomId)
 
     if room.user_count == 0:
         return  # 如果房间内没有用户了，则不需要广播通知

@@ -117,9 +117,26 @@ class RedisClient:
             }
         return {}
 
-    def add_room_user(self, room_id: str, user_id: str, user_data: Dict[str, Any]) -> None:
+    def get_room_user(self, room_id: str, user_id: str) -> Optional[Dict[str, Any]]:
         """
-        添加用户到房间
+        获取房间内的单个用户数据
+
+        Args:
+            room_id: 房间ID
+            user_id: 用户ID
+
+        Returns:
+            用户数据字典，如果不存在则返回None
+        """
+        key = self._get_users_key(room_id)
+        user_json = self._client.hget(key, user_id)
+        if user_json:
+            return json.loads(user_json)
+        return None
+
+    def set_room_user(self, room_id: str, user_id: str, user_data: Dict[str, Any]) -> None:
+        """
+        设置/更新房间内的单个用户数据
 
         Args:
             room_id: 房间ID
@@ -128,6 +145,17 @@ class RedisClient:
         """
         key = self._get_users_key(room_id)
         self._client.hset(key, user_id, json.dumps(user_data, ensure_ascii=False))
+
+    def add_room_user(self, room_id: str, user_id: str, user_data: Dict[str, Any]) -> None:
+        """
+        添加用户到房间（别名方法，实际调用set_room_user）
+
+        Args:
+            room_id: 房间ID
+            user_id: 用户ID
+            user_data: 用户数据字典
+        """
+        self.set_room_user(room_id, user_id, user_data)
 
     def remove_room_user(self, room_id: str, user_id: str) -> None:
         """
@@ -139,6 +167,32 @@ class RedisClient:
         """
         key = self._get_users_key(room_id)
         self._client.hdel(key, user_id)
+
+    def get_room_user_ids(self, room_id: str) -> list[str]:
+        """
+        获取房间内所有用户ID列表
+
+        Args:
+            room_id: 房间ID
+
+        Returns:
+            用户ID列表
+        """
+        key = self._get_users_key(room_id)
+        return list(self._client.hkeys(key))
+
+    def get_room_user_count(self, room_id: str) -> int:
+        """
+        获取房间内用户数量
+
+        Args:
+            room_id: 房间ID
+
+        Returns:
+            用户数量
+        """
+        key = self._get_users_key(room_id)
+        return self._client.hlen(key)
 
     def get_all_room_ids(self) -> list[str]:
         """

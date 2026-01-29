@@ -21,7 +21,14 @@ class Settings(BaseSettings):
     redis_port: int = 6379
     redis_db: int = 0
     redis_password: str = ""
-    redis_prefix: str = "jusi_meet:"
+    redis_prefix: str = "meet:"
+
+    # MySQL配置
+    mysql_host: str = "localhost"
+    mysql_port: int = 3306
+    mysql_user: str = "root"
+    mysql_password: str = ""
+    mysql_database: str = "jusi_meet"
 
     # 其他配置项
     token_expire_ts: int = 24 * 60 * 60
