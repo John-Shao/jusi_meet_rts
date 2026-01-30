@@ -78,7 +78,7 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
         return
     elif result == 0:
         # 用户不在房间中，加入房间
-        room: MeetingRoom = await rtsService.join_room(notify_msg.AppId, user, rts_event.RoomId)
+        room: MeetingRoom = await rtsService.join_room(user, rts_event.RoomId)
     else:
         # 用户已在房间中，仍可能需要发送通知
         room: MeetingRoom = await rtsService.get_room(rts_event.RoomId)

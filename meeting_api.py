@@ -1,6 +1,10 @@
 """
 会议管理API
 提供会议预定、取消、查询等功能
+
+注意：此文件已被移动到 jusi_meet_server 项目中
+当前保留在此处作为 RTS 服务的直接接口实现
+如需使用会议管理功能，请通过 jusi_meet_server 项目的接口访问
 """
 import logging
 from fastapi import APIRouter
@@ -9,11 +13,11 @@ from rts_service import rtsService
 
 logger = logging.getLogger(__name__)
 
-manager_router = APIRouter()
+meeting_router = APIRouter()
 
 
 # 预定会议
-@manager_router.post("meeting/book", response_model=BookMeetingResponse)
+@meeting_router.post("/meeting/book", response_model=BookMeetingResponse)
 async def book_meeting(request: BookMeetingRequest):
     """
     预定会议
@@ -26,7 +30,6 @@ async def book_meeting(request: BookMeetingRequest):
     """
     try:
         success = await rtsService.create_room(
-            app_id=request.app_id,
             room_id=request.room_id,
             host_user_id=request.host_user_id,
             host_user_name=request.host_user_name,
@@ -58,7 +61,7 @@ async def book_meeting(request: BookMeetingRequest):
 
 
 # 取消会议
-@manager_router.post("meeting/cancel", response_model=CancelMeetingResponse)
+@meeting_router.post("/meeting/cancel", response_model=CancelMeetingResponse)
 async def cancel_meeting(request: CancelMeetingRequest):
     """
     取消会议（只有主持人可以取消，且房间内没有人时才能取消）
@@ -90,7 +93,7 @@ async def cancel_meeting(request: CancelMeetingRequest):
 
 
 # 查询我的会议
-@manager_router.post("meeting/get-my", response_model=GetMyMeetingsResponse)
+@meeting_router.post("/meeting/get-my", response_model=GetMyMeetingsResponse)
 async def get_my_meetings(request: GetMyMeetingsRequest):
     """
     查询用户作为主持人的所有会议
@@ -124,7 +127,7 @@ async def get_my_meetings(request: GetMyMeetingsRequest):
 
 
 # 检查房间是否存在
-@manager_router.post("meeting/check-room", response_model=CheckRoomResponse)
+@meeting_router.post("/meeting/check-room", response_model=CheckRoomResponse)
 async def check_room(request: CheckRoomRequest):
     """
     检查房间号是否存在
@@ -155,7 +158,7 @@ async def check_room(request: CheckRoomRequest):
 
 
 # 检查用户是否在房间中
-@manager_router.post("meeting/check-user-in-room", response_model=CheckUserInRoomResponse)
+@meeting_router.post("/meeting/check-user-in-room", response_model=CheckUserInRoomResponse)
 async def check_user_in_room(request: CheckUserInRoomRequest):
     """
     检查用户是否在某个会议中

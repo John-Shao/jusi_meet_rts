@@ -19,9 +19,9 @@ from vertc_service import rtc_service
 
 logger = logging.getLogger(__name__)
 
-meeting_router = APIRouter()
+message_router = APIRouter()
 
-@meeting_router.post("/rts/message", response_model=ResponseMessageBase)
+@message_router.post("/rts/message", response_model=ResponseMessageBase)
 async def handle_rts_message(request: Request):
     # 手动获取请求体
     body = await request.body()
@@ -118,7 +118,7 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
         )
         user = MeetingMember(user_model)
 
-        room: MeetingRoom = await rtsService.join_room(message.app_id, user, message.room_id)
+        room: MeetingRoom = await rtsService.join_room(user, message.room_id)
 
         wb_room_id = f"whiteboard_{message.room_id}"
         wb_user_id = f"whiteboard_{message.user_id}"

@@ -3,8 +3,9 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from rts_meeting import meeting_router
+from rts_message import message_router
 from rts_callback import callback_router
+from meeting_api import meeting_router
 from config import settings
 from log_mw import RequestLoggingMiddleware
 import uvicorn
@@ -64,8 +65,9 @@ app.add_middleware(
 app.add_middleware(RequestLoggingMiddleware)
 
 # 注册路由
-app.include_router(meeting_router, prefix=settings.api_vstr, tags=["Meeting RTS"])
-app.include_router(callback_router, prefix=settings.api_vstr, tags=["Callback RTS"])
+app.include_router(message_router, prefix=settings.api_vstr, tags=["RTS Message"])
+app.include_router(callback_router, prefix=settings.api_vstr, tags=["RTS Callback"])
+app.include_router(meeting_router, prefix=settings.api_vstr, tags=["Meeting API"])
 
 # 处理根路径请求
 @app.get("/")

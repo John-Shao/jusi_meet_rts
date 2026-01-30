@@ -3,6 +3,7 @@ from meeting_room import MeetingRoom
 from schemas import *
 from redis_client import redis_client
 from utils import current_timestamp_s
+from config import settings
 
 
 class RtsService:
@@ -40,14 +41,14 @@ class RtsService:
         return room.get_all_users() if room else []
 
     # 创建/预定房间
-    async def create_room(self, app_id: str, room_id: str, host_user_id: str, host_user_name: str, room_name: str = None) -> bool:
+    async def create_room(self, room_id: str, host_user_id: str, host_user_name: str, room_name: str = None) -> bool:
         # 检查房间是否已存在
         if redis_client.exists_room(room_id):
             return False
 
         # 创建房间
         room_state = RoomState(
-            app_id=app_id,
+            app_id=settings.rtc_app_id,
             room_id=room_id,
             room_name=room_name or room_id,
             host_user_id=host_user_id,
@@ -152,7 +153,7 @@ class RtsService:
         return 1 if user_data is not None else 0
 
     # 用户进入房间
-    async def join_room(self, app_id: str, user: MeetingMember, room_id: str) -> MeetingRoom:
+    async def join_room(self, user: MeetingMember, room_id: str) -> MeetingRoom:
         # 检查房间是否存在
         room = self._get_room_from_redis(room_id)
         if room:

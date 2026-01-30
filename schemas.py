@@ -206,7 +206,6 @@ class ManagerMessageType:
 
 # 预定会议请求
 class BookMeetingRequest(BaseModel):
-    app_id: str
     room_id: str
     room_name: Optional[str] = None
     host_user_id: str
@@ -221,7 +220,6 @@ class BookMeetingResponse(BaseModel):
 
 # 取消会议请求
 class CancelMeetingRequest(BaseModel):
-    app_id: str
     room_id: str
     user_id: str  # 操作用户ID，必须是主持人
 
@@ -233,7 +231,6 @@ class CancelMeetingResponse(BaseModel):
 
 # 查询我的会议请求
 class GetMyMeetingsRequest(BaseModel):
-    app_id: str
     user_id: str
 
 # 会议简要信息
@@ -254,7 +251,6 @@ class GetMyMeetingsResponse(BaseModel):
 
 # 检查房间是否存在请求
 class CheckRoomRequest(BaseModel):
-    app_id: str
     room_id: str
 
 # 检查房间是否存在响应
@@ -266,7 +262,6 @@ class CheckRoomResponse(BaseModel):
 
 # 检查用户是否在房间中请求
 class CheckUserInRoomRequest(BaseModel):
-    app_id: str
     room_id: str
     user_id: str
 
