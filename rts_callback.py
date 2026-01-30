@@ -105,11 +105,14 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
 
     logger.debug(f"准备发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
 
-    try:
-        response = rtc_service.send_broadcast(body.model_dump_json())
+    response = rtc_service.send_broadcast(body.model_dump_json())
+
+    # 检查API调用是否成功
+    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
+        error = response["ResponseMetadata"]["Error"]
+        logger.error(f"发送广播消息失败: {error.get('Code')} - {error.get('Message')}")
+    else:
         logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
-    except Exception as e:
-        logger.error(f"发送广播消息失败: {e}")
 
 # 处理用户离开房间事件
 async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
@@ -159,11 +162,14 @@ async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
 
     logger.debug(f"准备发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
 
-    try:
-        response = rtc_service.send_broadcast(body.model_dump_json())
+    response = rtc_service.send_broadcast(body.model_dump_json())
+
+    # 检查API调用是否成功
+    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
+        error = response["ResponseMetadata"]["Error"]
+        logger.error(f"发送广播消息失败: {error.get('Code')} - {error.get('Message')}")
+    else:
         logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
-    except Exception as e:
-        logger.error(f"发送广播消息失败: {e}")
 
 
 # 处理程序映射

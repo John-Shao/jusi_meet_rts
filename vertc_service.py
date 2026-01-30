@@ -1,12 +1,15 @@
 # coding:utf-8
 import json
 import threading
+import logging
 
 from volcengine.ApiInfo import ApiInfo
 from volcengine.Credentials import Credentials
 from volcengine.base.Service import Service
 from volcengine.ServiceInfo import ServiceInfo
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class VertcService(Service):
@@ -161,27 +164,43 @@ class VertcService(Service):
 
 # 发送房间外点对点消息（SendUnicast）
     def send_unicast(self, body):
-        res = self.json("SendUnicast", {}, body)
-        if res == '':
-            raise Exception("SendUnicast: empty response")
-        res_json = json.loads(res)
-        return res_json
+        try:
+            res = self.json("SendUnicast", {}, body)
+            if res == '':
+                logger.error("SendUnicast: 收到空响应")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"SendUnicast 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # 发送房间内广播消息（SendBroadcast）
     def send_broadcast(self, body):
-        res = self.json("SendBroadcast", {}, body)
-        if res == '':
-            raise Exception("SendBroadcast: empty response")
-        res_json = json.loads(res)
-        return res_json
+        try:
+            res = self.json("SendBroadcast", {}, body)
+            if res == '':
+                logger.error("SendBroadcast: 收到空响应")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"SendBroadcast 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # 发送房间内点对点消息（SendRoomUnicast）
     def send_room_unicast(self, body):
-        res = self.json("SendRoomUnicast", {}, body)
-        if res == '':
-            raise Exception("SendRoomUnicast: empty response")
-        res_json = json.loads(res)
-        return res_json
+        try:
+            res = self.json("SendRoomUnicast", {}, body)
+            if res == '':
+                logger.error("SendRoomUnicast: 收到空响应")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"SendRoomUnicast 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
+
 
 
 # 实时消息通信服务实例
