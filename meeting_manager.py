@@ -152,3 +152,48 @@ async def check_room(request: CheckRoomRequest):
             exists=False,
             message=f"服务器错误: {str(e)}"
         )
+
+
+# 检查用户是否在房间中
+@manager_router.post("meeting/check-user-in-room", response_model=CheckUserInRoomResponse)
+async def check_user_in_room(request: CheckUserInRoomRequest):
+    """
+    检查用户是否在某个会议中
+
+    Args:
+        request: 检查用户在房间请求
+
+    Returns:
+        用户是否在房间中
+    """
+    try:
+        result = await rtsService.check_user_in_room(
+            room_id=request.room_id,
+            user_id=request.user_id
+        )
+
+        if result == -1:
+            return CheckUserInRoomResponse(
+                code=404,
+                room_id=request.room_id,
+                user_id=request.user_id,
+                in_room=False,
+                message="房间不存在"
+            )
+
+        return CheckUserInRoomResponse(
+            code=200,
+            room_id=request.room_id,
+            user_id=request.user_id,
+            in_room=(result == 1),
+            message="查询成功"
+        )
+    except Exception as e:
+        logger.error(f"检查用户是否在房间失败: {e}")
+        return CheckUserInRoomResponse(
+            code=500,
+            room_id=request.room_id,
+            user_id=request.user_id,
+            in_room=False,
+            message=f"服务器错误: {str(e)}"
+        )

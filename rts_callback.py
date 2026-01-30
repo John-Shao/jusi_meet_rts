@@ -68,7 +68,21 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
     user = MeetingMember(user_model)
 
     # 将用户加入房间
-    room: MeetingRoom = await rtsService.join_room(notify_msg.AppId, user, rts_event.RoomId)
+    result = await rtsService.check_user_in_room(
+        room_id=rts_event.RoomId,
+        user_id=rts_event.UserId,
+    )
+
+    if result == -1:
+        # 房间不存在，不处理
+        return
+    elif result == 0:
+        # 用户不在房间中，加入房间
+        room: MeetingRoom = await rtsService.join_room(notify_msg.AppId, user, rts_event.RoomId)
+    else:
+        # 用户已在房间中，仍可能需要发送通知
+        room: MeetingRoom = await rtsService.get_room(rts_event.RoomId)
+
     if room.user_count == 1:
         return  # 如果是第一个用户加入房间，则不需要广播通知
 
@@ -100,7 +114,7 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
 # 处理用户离开房间事件
 async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
     rts_event = UserLeaveRoomEvent(**event_data)
-    # 从数据库查询用户名（异步）
+    # 从数据库查询用户名
     user_name = await mysql_client.get_user_name(rts_event.UserId)
     if not user_name:
         user_name = rts_event.UserId  # 查询失败时使用 user_id 作为默认值
@@ -123,6 +137,7 @@ async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
     await rtsService.leave_room(rts_event.UserId, rts_event.RoomId)
 
     if room.user_count == 0:
+        rtsService.remove_room(rts_event.RoomId)
         return  # 如果房间内没有用户了，则不需要广播通知
 
     # 广播通知房间内的用户

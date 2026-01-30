@@ -111,7 +111,7 @@ class RtsService:
                         "host_user_id": room_state.host_user_id,
                         "host_user_name": room_state.host_user_name,
                         "start_time": room_state.start_time,
-                        "user_count": user_count,
+                        "user_count": user_count,  # 会议中的用户数量
                     })
 
         return meetings
@@ -129,18 +129,37 @@ class RtsService:
         """
         return redis_client.exists_room(room_id)
 
+    # 检查用户是否在房间中
+    async def check_user_in_room(self, room_id: str, user_id: str) -> int:
+        """
+        检查用户是否在房间中
+
+        Args:
+            room_id: 房间ID
+            user_id: 用户ID
+
+        Returns:
+            -1: 房间不存在
+            0: 用户不在房间中
+            1: 用户在房间中
+        """
+        # 检查房间是否存在
+        if not redis_client.exists_room(room_id):
+            return -1
+
+        # 检查用户是否在房间中
+        user_data = redis_client.get_room_user(room_id, user_id)
+        return 1 if user_data is not None else 0
+
     # 用户进入房间
     async def join_room(self, app_id: str, user: MeetingMember, room_id: str) -> MeetingRoom:
         # 检查房间是否存在
         room = self._get_room_from_redis(room_id)
-        if not room:
-            return None
-
-        # 使用 MeetingRoom 的业务逻辑来添加用户（自动判断角色）
-        room.add_user(user)
-
-        # 保存用户到 Redis（细粒度操作）
-        redis_client.add_room_user(room_id, user.id, user.to_dict())
+        if room:
+            # 使用 MeetingRoom 的业务逻辑来添加用户（自动判断角色）
+            room.add_user(user)
+            # 保存用户到 Redis（细粒度操作）
+            redis_client.add_room_user(room_id, user.id, user.to_dict())
 
         # 返回完整房间数据（加载所有用户）
         return room
@@ -158,12 +177,11 @@ class RtsService:
     async def finish_room(self, user_id: str, room_id: str) -> None:
         # 细粒度操作：只检查房间信息
         room_data = redis_client.get_room(room_id)
-        assert room_data, "房间不存在"
-        room_state = RoomState.model_validate(room_data)
-        assert room_state.host_user_id == user_id, "只允许主持人关闭房间"
-
-        # 从Redis中删除
-        redis_client.delete_room(room_id)
+        if room_data:
+            room_state = RoomState.model_validate(room_data)
+            assert room_state.host_user_id == user_id, "只允许主持人关闭房间"
+            # 从Redis中删除
+            redis_client.delete_room(room_id)
 
     # 操作自己的摄像头
     async def operate_self_camera(self, user_id: str, room_id: str, operate: DeviceState) -> None:

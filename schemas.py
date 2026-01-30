@@ -263,3 +263,17 @@ class CheckRoomResponse(BaseModel):
     room_id: str
     exists: bool
     message: Optional[str] = None
+
+# 检查用户是否在房间中请求
+class CheckUserInRoomRequest(BaseModel):
+    app_id: str
+    room_id: str
+    user_id: str
+
+# 检查用户是否在房间中响应
+class CheckUserInRoomResponse(BaseModel):
+    code: int  # 200:成功, 404:房间不存在, 500:服务器错误
+    room_id: str
+    user_id: str
+    in_room: bool
+    message: Optional[str] = None
