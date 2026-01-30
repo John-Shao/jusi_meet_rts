@@ -68,8 +68,6 @@ async def handle_rts_message(request: Request):
             content="invalid message format",
             )
 
-    # 添加后台任务处理返回消息
-    # background_tasks.add_task(send_return_message, message)
     await send_return_message(message)
     
     return ResponseMessageBase(
