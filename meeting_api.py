@@ -34,6 +34,7 @@ async def book_meeting(request: BookMeetingRequest):
             host_user_id=request.host_user_id,
             host_user_name=request.host_user_name,
             room_name=request.room_name,
+            host_device_sn=request.host_device_sn,
         )
 
         if success:
