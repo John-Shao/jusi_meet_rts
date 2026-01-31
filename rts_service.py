@@ -41,7 +41,13 @@ class RtsService:
         return room.get_all_users() if room else []
 
     # 创建/预定房间
-    async def create_room(self, room_id: str, host_user_id: str, host_user_name: str, room_name: str = None, host_device_sn: str = None) -> bool:
+    async def create_room(
+            self, room_id: str,
+            host_user_id: str,
+            host_user_name: str,
+            room_name: str = None,
+            host_device_sn: str = None
+            ) -> bool:
         # 检查房间是否已存在
         if redis_client.exists_room(room_id):
             return False

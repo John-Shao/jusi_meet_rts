@@ -197,13 +197,58 @@ class InformVcOnLeaveRoom(BaseModel):
     user_count: int
 
 
+# ================================== Drift API ==================================
+# 响应消息模型
+class DriftResponseBase(BaseModel):
+    code: int = 200
+    message: str = "ok"  # 详细错误信息
+    timestamp: int = Field(default_factory=lambda: current_timestamp_ms())  # 时间戳ms
+    data: Optional[Any] = {}
+
+
+# 相机加入房间请求
+class DriftJoinRequest(BaseModel):
+    room_id: str = Field(description="房间ID")
+    device_sn: str = Field(description="设备序列号")
+
+# 相机加入房间响应
+class DriftJoinRspData(BaseModel):
+    rtmp_url: str = Field(description="RTMP URL")
+    rtsp_url: str = Field(description="RTSP URL")
+
+# 相机离开房间请求
+class DriftLeaveRequest(BaseModel):
+    room_id: str = Field(description="房间ID")
+    device_sn: str = Field(description="设备序列号")
+
 # ================================== Meeting Manager ==================================
 
-# 会议管理消息类型
-class ManagerMessageType:
-    BookMeeting = "bookMeeting"           # 预定会议
-    CancelMeeting = "cancelMeeting"       # 取消会议
-    GetMyMeetings = "getMyMeetings"       # 查询我的会议
+# 相机加入会议请求
+class CameraJoinRequest(BaseModel):
+    room_id: str
+    device_sn: str = None
+    action_type: int = 0  # 0:发起会议, 1:加入会议
+    room_name: Optional[str] = None
+    holder_user_id: str = None  # 设备持有者用户ID
+    holder_user_name: str = None  # 设备持有者用户名
+
+# 相机加入会议响应
+class CameraJoinResponse(BaseModel):
+    code: int = 200
+    rtmp_url: Optional[str] = ""
+    rtsp_url: Optional[str] = ""
+    message: Optional[str] = ""
+
+# 相机离开会议请求
+class CameraLeaveRequest(BaseModel):
+    room_id: str
+    device_sn: str = None
+    holder_user_id: str = None  # 设备持有者用户ID
+
+# 相机离开会议响应
+class CameraLeaveResponse(BaseModel):
+    code: int = 200
+    message: Optional[str] = ""
 
 # 预定会议请求
 class BookMeetingRequest(BaseModel):

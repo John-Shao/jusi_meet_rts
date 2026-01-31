@@ -10,11 +10,11 @@ import logging
 from fastapi import APIRouter
 from schemas import *
 from rts_service import rtsService
+from drift_api import drift_join_room, drift_leave_room
 
 logger = logging.getLogger(__name__)
 
 meeting_router = APIRouter()
-
 
 # 预定会议
 @meeting_router.post("/meeting/book", response_model=BookMeetingResponse)
@@ -199,5 +199,101 @@ async def check_user_in_room(request: CheckUserInRoomRequest):
             room_id=request.room_id,
             user_id=request.user_id,
             in_room=False,
+            message=f"服务器错误: {str(e)}"
+        )
+
+
+# 相机加入会议
+@meeting_router.post("/meeting/camera-join", response_model=CameraJoinResponse)
+async def camera_join(request: CameraJoinRequest):
+    """
+    相机加入会议
+
+    Args:
+        request: 相机加入会议请求
+
+    Returns:
+        相机加入会议响应
+    """
+    try:
+        # 如果 action_type = 0，需要先预定会议
+        if request.action_type == 0:
+            success = await rtsService.create_room(
+                room_id=request.room_id,
+                host_user_id=request.host_user_id,
+                host_user_name=request.host_user_name,
+                room_name=request.room_name,
+                host_device_sn=request.host_device_sn,
+            )
+
+            if not success:
+                return CameraJoinResponse(
+                    code=400,
+                    rtmp_url="",
+                    rtsp_url="",
+                    message="会议已存在"
+                )
+
+        # 调用 drift_join_room 将相机加入会议
+        drift_result = await drift_join_room(DriftJoinRequest(
+            room_id=request.room_id,
+            device_sn=request.device_sn
+        ))
+
+        if drift_result.code == 200:
+            return CameraJoinResponse(
+                code=200,
+                rtmp_url=drift_result.data.rtmp_url,
+                rtsp_url=drift_result.data.rtsp_url,
+                message="相机加入会议成功"
+            )
+        else:
+            return CameraJoinResponse(
+                code=drift_result.code,
+                message=drift_result.message
+            )
+
+    except Exception as e:
+        logger.error(f"相机加入会议失败: {e}")
+        return CameraJoinResponse(
+            code=500,
+            message=f"服务器错误: {str(e)}"
+        )
+
+
+# 相机离开会议
+@meeting_router.post("/meeting/camera-leave", response_model=CameraLeaveResponse)
+async def camera_leave(request: CameraLeaveRequest):
+    """
+    相机离开会议
+
+    Args:
+        request: 相机离开会议请求
+
+    Returns:
+        相机离开会议响应
+    """
+    try:
+        # 调用 drift_leave_room 将相机退出会议
+        drift_result = await drift_leave_room(DriftLeaveRequest(
+            room_id=request.room_id,
+            device_sn=request.device_sn
+        ))
+
+        if drift_result.code == 200:
+            return CameraLeaveResponse(
+                code=200,
+                message="相机离开会议成功"
+            )
+        else:
+            return CameraLeaveResponse(
+                code=drift_result.code,
+                message=drift_result.message
+            )
+
+    except Exception as e:
+        logger.error(f"相机离开会议失败: {e}")
+        return CameraLeaveResponse(
+            code=500,
             message=f"服务器错误: {str(e)}"
         )
