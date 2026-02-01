@@ -122,8 +122,11 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
 
         wb_room_id = f"whiteboard_{message.room_id}"
         wb_user_id = f"whiteboard_{message.user_id}"
-        
+
+        room_dict = room.to_dict()
         response = JoinMeetingRoomRes(
+            room = room_dict["room_data"],
+            user = user.to_dict(),
             user_list = [u.to_dict() for u in room.get_all_users()],
             token = generate_token(user.id, message.room_id),
             wb_room_id = wb_room_id,

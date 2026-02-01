@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     mysql_port: int = 3306
     mysql_user: str = "root"
     mysql_password: str = ""
-    mysql_database: str = "jusi_meet"
+    mysql_database: str = "jusi_db"
 
     # 其他配置项
     token_expire_ts: int = 24 * 60 * 60
