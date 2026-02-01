@@ -243,7 +243,6 @@ class CameraJoinResponse(BaseModel):
 class CameraLeaveRequest(BaseModel):
     room_id: str
     device_sn: str = None
-    holder_user_id: str = None  # 设备持有者用户ID
 
 # 相机离开会议响应
 class CameraLeaveResponse(BaseModel):
