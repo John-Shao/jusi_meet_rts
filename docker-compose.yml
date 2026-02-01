@@ -1,0 +1,73 @@
+# JUSI Meeting RTS Server 部署
+# 依赖于 jusi_infrastructure 项目提供的 MySQL 和 Redis 服务
+# 使用前请先启动基础设施项目：cd ../jusi_infrastructure && docker-compose up -d
+version: '3.8'
+
+services:
+  # Meeting RTS 服务器
+  meet_rts_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jusi_meet_rts
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # MySQL配置 - 使用外部基础设施服务的容器名
+      MYSQL_HOST: jusi_mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-jusi}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-jusi_meet}
+
+      # Redis配置 - 使用外部基础设施服务的容器名
+      REDIS_HOST: jusi_redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-jusi2025}
+      REDIS_DB: ${REDIS_DB:-0}
+
+      # 火山引擎 AK/SK 配置
+      ACCOUNT_ID: ${ACCOUNT_ID}
+      VOLC_AK: ${VOLC_AK}
+      VOLC_SK: ${VOLC_SK}
+      VOLC_REGION: ${VOLC_REGION:-cn-beijing}
+
+      # RTC配置
+      RTC_APP_ID: ${RTC_APP_ID}
+      RTC_APP_KEY: ${RTC_APP_KEY}
+
+      # 音视频互动智能体配置
+      VOLC_CAI_APP_ID: ${VOLC_CAI_APP_ID}
+      VOLC_CAI_APP_KEY: ${VOLC_CAI_APP_KEY}
+
+      # 豆包端到端实时语音大模型
+      DOUBAO_S2S_APP_ID: ${DOUBAO_S2S_APP_ID}
+      DOUBAO_S2S_ACCESS_TOKEN: ${DOUBAO_S2S_ACCESS_TOKEN}
+
+      # RTMP服务器配置
+      VIDEO_RTMP_HOST: ${VIDEO_RTMP_HOST}
+      VIDEO_RTMP_PORT: ${VIDEO_RTMP_PORT:-1935}
+      AUDIO_RTMP_HOST: ${AUDIO_RTMP_HOST}
+      AUDIO_RTMP_PORT: ${AUDIO_RTMP_PORT:-2935}
+      AUDIO_RTSP_PORT: ${AUDIO_RTSP_PORT:-8554}
+
+      # 应用配置
+      BIND_ADDR: 0.0.0.0
+      BIND_PORT: 9000
+      DEBUG: ${DEBUG:-false}
+    ports:
+      - "${BIND_PORT:-9000}:9000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - jusi_shared_network
+
+networks:
+  jusi_shared_network:
+    external: true
+    name: jusi_shared_network

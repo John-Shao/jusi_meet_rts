@@ -319,3 +319,9 @@ class CheckUserInRoomResponse(BaseModel):
     user_id: str
     in_room: bool
     message: Optional[str] = None
+
+# 生成房间号响应
+class GenerateRoomIdResponse(BaseModel):
+    code: int  # 200:成功, 500:服务器错误
+    room_id: Optional[str] = None
+    message: Optional[str] = None

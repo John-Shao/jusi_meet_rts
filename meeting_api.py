@@ -7,6 +7,7 @@
 如需使用会议管理功能，请通过 jusi_meet_server 项目的接口访问
 """
 import logging
+import random
 from fastapi import APIRouter
 from schemas import *
 from rts_service import rtsService
@@ -303,6 +304,46 @@ async def camera_leave(request: CameraLeaveRequest):
     except Exception as e:
         logger.error(f"相机离开会议失败: {e}")
         return CameraLeaveResponse(
+            code=500,
+            message=f"服务器错误: {str(e)}"
+        )
+
+
+# 生成房间号
+@meeting_router.post("/meeting/generate-room-id", response_model=GenerateRoomIdResponse)
+async def generate_room_id():
+    """
+    生成一个不与现有会议号冲突的6位随机会议号
+
+    Returns:
+        生成的会议号
+    """
+    try:
+        max_attempts = 100  # 最大尝试次数，避免无限循环
+
+        for _ in range(max_attempts):
+            # 生成6位随机正整数 (100000-999999)
+            room_id = str(random.randint(100000, 999999))
+
+            # 检查是否与现有会议号冲突
+            exists = await rtsService.check_room_exists(room_id=room_id)
+
+            if not exists:
+                return GenerateRoomIdResponse(
+                    code=200,
+                    room_id=room_id,
+                    message="生成会议号成功"
+                )
+
+        # 如果尝试了max_attempts次仍未找到可用的会议号
+        return GenerateRoomIdResponse(
+            code=500,
+            message="生成会议号失败，请稍后重试"
+        )
+
+    except Exception as e:
+        logger.error(f"生成会议号失败: {e}")
+        return GenerateRoomIdResponse(
             code=500,
             message=f"服务器错误: {str(e)}"
         )
