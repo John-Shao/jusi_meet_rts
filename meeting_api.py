@@ -233,6 +233,15 @@ async def camera_join(request: CameraJoinRequest):
                     rtsp_url="",
                     message="会议已存在"
                 )
+        # 如果 action_type = 1，直接加入会议
+        elif request.action_type == 1:
+            # 检查房间是否存在
+            room_exists = await rtsService.check_room_exists(room_id=request.room_id)
+            if not room_exists:
+                return CameraJoinResponse(
+                    code=404,
+                    message="会议不存在"
+                )
 
         # 调用 drift_join_room 将相机加入会议
         drift_result = await drift_join_room(DriftJoinRequest(
