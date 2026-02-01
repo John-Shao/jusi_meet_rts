@@ -221,10 +221,10 @@ async def camera_join(request: CameraJoinRequest):
         if request.action_type == 0:
             success = await rtsService.create_room(
                 room_id=request.room_id,
-                host_user_id=request.host_user_id,
-                host_user_name=request.host_user_name,
+                host_user_id=request.holder_user_id,
+                host_user_name=request.holder_user_name,
                 room_name=request.room_name,
-                host_device_sn=request.host_device_sn,
+                host_device_sn=request.device_sn,
             )
 
             if not success:
