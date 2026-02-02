@@ -9,6 +9,8 @@ from fastapi import (
     )
 import json
 from typing import Dict
+
+from fastapi.background import P
 from schemas import *
 from meeting_member import MeetingMember
 from meeting_room import MeetingRoom
@@ -280,9 +282,9 @@ async def handle_get_user_list(message: RequestMessageBase, content: Dict):
 
 # 处理操纵自己的摄像头
 async def handle_operate_self_camera(message: RequestMessageBase, content: Dict):
-    operate: DeviceState = content.get("operate")
+    operate: int = content.get("operate")
 
-    await rtsService.operate_self_camera(message.user_id, message.room_id, operate)
+    await rtsService.operate_self_camera(message.user_id, message.room_id, DeviceState(operate))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -307,9 +309,9 @@ async def handle_operate_self_camera(message: RequestMessageBase, content: Dict)
 
 # 处理操纵自己的麦克风
 async def handle_operate_self_mic(message: RequestMessageBase, content: Dict):
-    operate: DeviceState = content.get("operate")
+    operate: int = content.get("operate")
 
-    await rtsService.operate_self_mic(message.user_id, message.room_id, operate)
+    await rtsService.operate_self_mic(message.user_id, message.room_id, DeviceState(operate))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -334,9 +336,9 @@ async def handle_operate_self_mic(message: RequestMessageBase, content: Dict):
 
 # 处理操纵自己麦克风权限申请
 async def handle_operate_self_mic_apply(message: RequestMessageBase, content: Dict):
-    operate: Permission = content.get("operate")
+    operate: int = content.get("operate")
 
-    await rtsService.operate_self_mic_apply(message.user_id, message.room_id, operate)
+    await rtsService.operate_self_mic_apply(message.user_id, message.room_id, Permission(operate))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -361,9 +363,9 @@ async def handle_operate_self_mic_apply(message: RequestMessageBase, content: Di
 
 # 处理本地用户开始共享
 async def handle_start_share(message: RequestMessageBase, content: Dict):
-    share_type: ShareType = content.get("share_type")
+    share_type: int = content.get("share_type")
 
-    await rtsService.start_share(message.user_id, message.room_id, share_type)
+    await rtsService.start_share(message.user_id, message.room_id, ShareType(share_type))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -466,10 +468,10 @@ async def handle_operate_other_camera(message: RequestMessageBase, content: Dict
 
 # 处理操纵参会人的麦克风
 async def handle_operate_other_mic(message: RequestMessageBase, content: Dict):
-    operate: DeviceState = content.get("operate")
+    operate: int = content.get("operate")
     operate_user_id = content.get("operate_user_id")
 
-    await rtsService.operate_other_mic(message.user_id, message.room_id, operate_user_id, operate)
+    await rtsService.operate_other_mic(message.user_id, message.room_id, operate_user_id, DeviceState(operate))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -495,10 +497,10 @@ async def handle_operate_other_mic(message: RequestMessageBase, content: Dict):
 
 # 处理操纵参会人屏幕共享权限
 async def handle_operate_other_share_permission(message: RequestMessageBase, content: Dict):
-    operate = content.get("operate")
+    operate: int = content.get("operate")
     operate_user_id = content.get("operate_user_id")
 
-    await rtsService.operate_other_share_permission(message.user_id, message.room_id, operate_user_id, operate)
+    await rtsService.operate_other_share_permission(message.user_id, message.room_id, operate_user_id, Permission(operate))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -523,10 +525,10 @@ async def handle_operate_other_share_permission(message: RequestMessageBase, con
 
 # 处理全员麦克风操作
 async def handle_operate_all_mic(message: RequestMessageBase, content: Dict):
-    operate_self_mic_permission: Permission = content.get("operate_self_mic_permission")  # 全员静音后，是否允许房间内观众自行开麦
-    operate: DeviceState = content.get("operate")  # 全员静音或取消静音
+    operate_self_mic_permission: int = content.get("operate_self_mic_permission")  # 全员静音后，是否允许房间内观众自行开麦
+    operate: int = content.get("operate")  # 全员静音或取消静音
 
-    await rtsService.operate_all_mic(message.user_id, message.room_id, operate_self_mic_permission, operate)
+    await rtsService.operate_all_mic(message.user_id, message.room_id, Permission(operate_self_mic_permission), DeviceState(operate))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -552,9 +554,9 @@ async def handle_operate_all_mic(message: RequestMessageBase, content: Dict):
 # 观众请求麦克风使用权限后, 主持人答复
 async def handle_operate_self_mic_permit(message: RequestMessageBase, content: Dict):
     apply_user_id: str = content.get("apply_user_id")  # 申请麦克风使用权限的用户ID
-    permit: Permission = content.get("permit")  # 主持人是否同意麦克风使用权限
+    permit: int = content.get("permit")  # 主持人是否同意麦克风使用权限
 
-    await rtsService.operate_self_mic_permit(message.user_id, message.room_id, apply_user_id, permit)
+    await rtsService.operate_self_mic_permit(message.user_id, message.room_id, apply_user_id, Permission(permit))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
@@ -580,9 +582,9 @@ async def handle_operate_self_mic_permit(message: RequestMessageBase, content: D
 # 观众请求屏幕共享权限后, 主持人答复
 async def handle_share_permission_permit(message: RequestMessageBase, content: Dict):
     apply_user_id: str = content.get("apply_user_id")  # 申请屏幕共享权限的用户ID
-    permit: Permission = content.get("permit")  # 主持人是否同意屏幕共享权限
+    permit: int = content.get("permit")  # 主持人是否同意屏幕共享权限
 
-    await rtsService.operate_self_share_permission_permit(message.user_id, message.room_id, apply_user_id, permit)
+    await rtsService.operate_self_share_permission_permit(message.user_id, message.room_id, apply_user_id, Permission(permit))
 
     res = ResponseMessageBase(
         request_id=message.request_id,
