@@ -52,11 +52,11 @@ async def handle_rts_callback(request: Request):
 async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
     rts_event = UserJoinRoomEvent(**event_data)
 
-    # 从数据库查询用户名（异步）
-    user_name = await mysql_client.get_user_name(rts_event.UserId)
-    if not user_name:
-        user_name = rts_event.UserId  # 查询失败时使用 user_id 作为默认值
-        logger.warning(f"查询用户名失败，使用默认值: user_id={rts_event.UserId}")
+    # 从数据库查询用户名
+    if len(rts_event.UserId) == 32:
+        user_name = await mysql_client.get_user_name(rts_event.UserId)
+    else:
+        user_name = rts_event.UserId
 
     user_model = UserModel(
         user_id=rts_event.UserId,
@@ -118,10 +118,10 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
 async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
     rts_event = UserLeaveRoomEvent(**event_data)
     # 从数据库查询用户名
-    user_name = await mysql_client.get_user_name(rts_event.UserId)
-    if not user_name:
-        user_name = rts_event.UserId  # 查询失败时使用 user_id 作为默认值
-        logger.warning(f"查询用户名失败，使用默认值: user_id={rts_event.UserId}")
+    if len(rts_event.UserId) == 32:
+        user_name = await mysql_client.get_user_name(rts_event.UserId)
+    else:
+        user_name = rts_event.UserId
 
     user_model = UserModel(
         user_id=rts_event.UserId,
