@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 message_router = APIRouter()
 
+
 @message_router.post("/rts/message", response_model=ResponseMessageBase)
 async def handle_rts_message(request: Request):
     # 手动获取请求体
@@ -102,6 +103,7 @@ async def send_return_message(message: RequestMessageBase):
     else:
         logger.warning(f"收到未知事件消息: {message}")
 
+
 # 处理加入房间事件
 async def handle_join_room(message: RequestMessageBase, content: Dict):
     room_exists = await rtsService.check_room_exists(message.room_id)
@@ -155,14 +157,9 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
-
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 
 # 处理离开房间事件
@@ -181,14 +178,10 @@ async def handle_leave_room(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理关闭房间事件
 async def handle_finish_room(message: RequestMessageBase, content: Dict):
@@ -206,14 +199,10 @@ async def handle_finish_room(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理重连同步
 async def handle_resync(message: RequestMessageBase, content: Dict):
@@ -238,15 +227,12 @@ async def handle_resync(message: RequestMessageBase, content: Dict):
         To=message.user_id,
         Message=res.model_dump_json(),
     )
-
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
 
     # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
+
 
 # 处理获取用户列表
 async def handle_get_user_list(message: RequestMessageBase, content: Dict):
@@ -270,15 +256,10 @@ async def handle_get_user_list(message: RequestMessageBase, content: Dict):
         To=message.user_id,
         Message=res.model_dump_json(),
     )
-
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵自己的摄像头
 async def handle_operate_self_camera(message: RequestMessageBase, content: Dict):
@@ -297,15 +278,10 @@ async def handle_operate_self_camera(message: RequestMessageBase, content: Dict)
         To=message.user_id,
         Message=res.model_dump_json(),
     )
-
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵自己的麦克风
 async def handle_operate_self_mic(message: RequestMessageBase, content: Dict):
@@ -325,14 +301,10 @@ async def handle_operate_self_mic(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵自己麦克风权限申请
 async def handle_operate_self_mic_apply(message: RequestMessageBase, content: Dict):
@@ -352,14 +324,10 @@ async def handle_operate_self_mic_apply(message: RequestMessageBase, content: Di
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理本地用户开始共享
 async def handle_start_share(message: RequestMessageBase, content: Dict):
@@ -379,14 +347,10 @@ async def handle_start_share(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理本地用户停止共享
 async def handle_finish_share(message: RequestMessageBase, content: Dict):
@@ -404,14 +368,10 @@ async def handle_finish_share(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理申请共享权限
 async def handle_share_permission_apply(message: RequestMessageBase, content: Dict):
@@ -429,14 +389,10 @@ async def handle_share_permission_apply(message: RequestMessageBase, content: Di
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵参会人的摄像头
 async def handle_operate_other_camera(message: RequestMessageBase, content: Dict):
@@ -457,14 +413,10 @@ async def handle_operate_other_camera(message: RequestMessageBase, content: Dict
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理操纵参会人的麦克风
 async def handle_operate_other_mic(message: RequestMessageBase, content: Dict):
@@ -485,14 +437,9 @@ async def handle_operate_other_mic(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
-
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 
 # 处理操纵参会人屏幕共享权限
@@ -514,14 +461,10 @@ async def handle_operate_other_share_permission(message: RequestMessageBase, con
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理全员麦克风操作
 async def handle_operate_all_mic(message: RequestMessageBase, content: Dict):
@@ -542,14 +485,10 @@ async def handle_operate_all_mic(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 观众请求麦克风使用权限后, 主持人答复
 async def handle_operate_self_mic_permit(message: RequestMessageBase, content: Dict):
@@ -570,14 +509,10 @@ async def handle_operate_self_mic_permit(message: RequestMessageBase, content: D
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 观众请求屏幕共享权限后, 主持人答复
 async def handle_share_permission_permit(message: RequestMessageBase, content: Dict):
@@ -598,14 +533,9 @@ async def handle_share_permission_permit(message: RequestMessageBase, content: D
         Message=res.model_dump_json(),
     )
 
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
-
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 
 # 处理程序映射

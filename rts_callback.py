@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 callback_router = APIRouter()
 
+
 @callback_router.post("/rts/callback", response_model=ResponseMessageBase)
 async def handle_rts_callback(request: Request):
     # 手动获取请求体
@@ -47,6 +48,7 @@ async def handle_rts_callback(request: Request):
         status_code=200,
         content="ok",
     )
+
 
 # 处理用户加入房间事件
 async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
@@ -103,16 +105,10 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
         Message=inform.model_dump_json(),
     )
 
-    logger.debug(f"准备发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
-
+    logger.debug(f"发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_broadcast(body.model_dump_json())
+    logger.debug(f"广播消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送广播消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 # 处理用户离开房间事件
 async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
@@ -160,16 +156,9 @@ async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
         Message=inform.model_dump_json(),
     )
 
-    logger.debug(f"准备发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
-
+    logger.debug(f"发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_broadcast(body.model_dump_json())
-
-    # 检查API调用是否成功
-    if "ResponseMetadata" in response and "Error" in response.get("ResponseMetadata", {}):
-        error = response["ResponseMetadata"]["Error"]
-        logger.error(f"发送广播消息失败: {error.get('Code')} - {error.get('Message')}")
-    else:
-        logger.debug(f"返回消息: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    logger.debug(f"广播消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
 
 # 处理程序映射
