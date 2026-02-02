@@ -165,7 +165,9 @@ class VertcService(Service):
 # 发送房间外点对点消息（SendUnicast）
     def send_unicast(self, body):
         try:
+            logger.debug(f"SendUnicast 请求体: {body}")
             res = self.json("SendUnicast", {}, body)
+            logger.debug(f"SendUnicast 响应体: {res}")
             if res == '':
                 logger.error("SendUnicast: 收到空响应")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
@@ -178,7 +180,9 @@ class VertcService(Service):
 # 发送房间内广播消息（SendBroadcast）
     def send_broadcast(self, body):
         try:
+            logger.debug(f"SendBroadcast 请求体: {body}")
             res = self.json("SendBroadcast", {}, body)
+            logger.debug(f"SendBroadcast 响应体: {res}")
             if res == '':
                 logger.error("SendBroadcast: 收到空响应")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
@@ -191,7 +195,9 @@ class VertcService(Service):
 # 发送房间内点对点消息（SendRoomUnicast）
     def send_room_unicast(self, body):
         try:
+            logger.debug(f"SendRoomUnicast 请求体: {body}")
             res = self.json("SendRoomUnicast", {}, body)
+            logger.debug(f"SendRoomUnicast 响应体: {res}")
             if res == '':
                 logger.error("SendRoomUnicast: 收到空响应")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
