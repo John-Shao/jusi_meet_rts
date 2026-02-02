@@ -157,7 +157,7 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -178,7 +178,7 @@ async def handle_leave_room(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -199,7 +199,7 @@ async def handle_finish_room(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -227,7 +227,7 @@ async def handle_resync(message: RequestMessageBase, content: Dict):
         To=message.user_id,
         Message=res.model_dump_json(),
     )
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
 
     # 检查API调用是否成功
@@ -256,7 +256,7 @@ async def handle_get_user_list(message: RequestMessageBase, content: Dict):
         To=message.user_id,
         Message=res.model_dump_json(),
     )
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -278,7 +278,7 @@ async def handle_operate_self_camera(message: RequestMessageBase, content: Dict)
         To=message.user_id,
         Message=res.model_dump_json(),
     )
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -301,7 +301,7 @@ async def handle_operate_self_mic(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -324,7 +324,7 @@ async def handle_operate_self_mic_apply(message: RequestMessageBase, content: Di
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -347,7 +347,7 @@ async def handle_start_share(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -368,7 +368,7 @@ async def handle_finish_share(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -389,7 +389,7 @@ async def handle_share_permission_apply(message: RequestMessageBase, content: Di
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -413,7 +413,7 @@ async def handle_operate_other_camera(message: RequestMessageBase, content: Dict
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -437,7 +437,7 @@ async def handle_operate_other_mic(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -461,7 +461,7 @@ async def handle_operate_other_share_permission(message: RequestMessageBase, con
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -485,7 +485,7 @@ async def handle_operate_all_mic(message: RequestMessageBase, content: Dict):
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -509,7 +509,7 @@ async def handle_operate_self_mic_permit(message: RequestMessageBase, content: D
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
@@ -533,7 +533,7 @@ async def handle_share_permission_permit(message: RequestMessageBase, content: D
         Message=res.model_dump_json(),
     )
 
-    logger.debug(f"发送房间外点对点消息: {json.dumps(body, indent=2, ensure_ascii=False)}")
+    logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
 
