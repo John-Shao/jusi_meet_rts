@@ -91,7 +91,7 @@ class RoomState(BaseModel):
     host_user_id: Optional[str] = ""
     host_user_name: Optional[str] = ""
     host_device_sn: Optional[str] = ""  # 主持人设备序列号
-    room_mic_status: DeviceState = RoomMicStatus.ALLOW_MIC  # 房间内是否全体静音
+    room_mic_status: RoomMicStatus = RoomMicStatus.ALLOW_MIC  # 房间内是否全体静音
     operate_self_mic_permission: Permission = Permission.HAS_PERMISSION  # 操作自己麦克风权限
     share_status: ShareStatus = ShareStatus.NOT_SHARING  # 房间内是否正在共享
     share_type: Optional[ShareType] = ShareType.SCREEN
