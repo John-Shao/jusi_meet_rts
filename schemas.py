@@ -6,6 +6,8 @@ from utils import current_timestamp_ms, current_timestamp_s
 
 # ================================== Meeting ==================================
 
+HUMAN_USER_ID_LENGTH = 32
+
 # 用户角色枚举
 class UserRole(IntEnum):
     VISITOR = 0  # 参会者
@@ -57,7 +59,7 @@ class RequestMessageBase(BaseModel):
     event_name: str
     content: str = "{}"
 
-# 房间外点对点消息模型（https://www.volcengine.com/docs/6348/1164061?lang=zh）
+# 房间外点对点消息模型：https://www.volcengine.com/docs/6348/1164061?lang=zh
 class UnicastMessageBase(BaseModel):
     AppId: str
     From: str = "server"
@@ -65,7 +67,7 @@ class UnicastMessageBase(BaseModel):
     Binary: bool = False
     Message: Optional[str] = "{}"
 
-# 房间内广播消息 SendBroadcast（https://www.volcengine.com/docs/6348/1164063?lang=zh）
+# 房间内广播消息 SendBroadcast：https://www.volcengine.com/docs/6348/1164063?lang=zh
 class BroadcastMessageBase(BaseModel):
     AppId: str
     RoomId: str
@@ -143,7 +145,7 @@ class GetUserListRes(BaseModel):
 
 # ================================== Callback ==================================
 
-# RTS回调通知
+# RTS回调通知：https://www.volcengine.com/docs/6348/75124?lang=zh
 class RtsCallback(BaseModel):
     EventType: str
     EventData: str
@@ -155,7 +157,7 @@ class RtsCallback(BaseModel):
     Signature: str
     Nonce: str
 
-# 用户加入房间回调事件数据
+# 用户加入房间回调事件数据：https://www.volcengine.com/docs/6348/75125?lang=zh#userjoinroom
 class UserJoinRoomEvent(BaseModel):
     RoomId: str
     UserId: str
@@ -165,7 +167,7 @@ class UserJoinRoomEvent(BaseModel):
     ExtraInfo: Optional[str] = ""
     UserExtraInfo: Optional[str] = ""
 
-# 用户离开房间回调事件数据
+# 用户离开房间回调事件数据：https://www.volcengine.com/docs/6348/75125?lang=zh#userleaveroom
 class UserLeaveRoomEvent(BaseModel):
     RoomId: str
     UserId: str
@@ -177,6 +179,12 @@ class UserLeaveRoomEvent(BaseModel):
     ExtraInfo: Optional[str] = ""
 
 
+# 房间销毁回调事件数据：https://www.volcengine.com/docs/6348/75125?lang=zh#roomdestroy
+class RoomDestroyEvent(BaseModel):
+    RoomId: str
+    Timestamp: Optional[int] = 0
+
+
 # ================================== Inform ==================================
 
 # RTS通知消息
@@ -186,15 +194,21 @@ class RtsInform(BaseModel):
     data: Optional[Any] = {}
     timestamp: int = Field(default_factory=lambda: current_timestamp_ms())  # 时间戳ms
 
-# 用户进入房间通知（vcOnJoinRoom）
+# 用户进入房间通知(vcOnJoinRoom)
 class InformVcOnJoinRoom(BaseModel):
     user: Dict[str, Any]
     user_count: int
 
-# 用户离开房间通知（vcOnLeaveRoom）
+# 用户离开房间通知(vcOnLeaveRoom)
 class InformVcOnLeaveRoom(BaseModel):
     user: Dict[str, Any]
     user_count: int
+
+# 房间销毁通知(vcOnFinishRoom)
+# meeting\src\main\java\com\volcengine\vertcdemo\framework\meeting\internal\IMeetingRtmDef.java:202
+# RoomReleasedNotify
+class InformVcOnRoomDestroy(BaseModel):
+    reason: int = 0  # 主持人关闭房间,通话已结束
 
 
 # ================================== Drift API ==================================
@@ -204,7 +218,6 @@ class DriftResponseBase(BaseModel):
     message: str = "ok"  # 详细错误信息
     timestamp: int = Field(default_factory=lambda: current_timestamp_ms())  # 时间戳ms
     data: Optional[Any] = {}
-
 
 # 相机加入房间请求
 class DriftJoinRequest(BaseModel):

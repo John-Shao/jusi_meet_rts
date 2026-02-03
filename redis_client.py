@@ -3,6 +3,8 @@ import redis
 from typing import Dict, Optional, Any
 from config import settings
 
+REDIS_PREFIX: str = "meet:"
+
 
 class RedisClient:
     """Redis客户端管理类，用于管理房间数据的存储和检索"""
@@ -18,15 +20,14 @@ class RedisClient:
             socket_connect_timeout=5,
             socket_timeout=5,
         )
-        self._prefix = settings.redis_prefix
 
     def _get_room_key(self, room_id: str) -> str:
         """生成房间的Redis键"""
-        return f"{self._prefix}room:{room_id}"
+        return f"{REDIS_PREFIX}room:{room_id}"
 
     def _get_users_key(self, room_id: str) -> str:
         """生成房间用户列表的Redis键"""
-        return f"{self._prefix}room:{room_id}:users"
+        return f"{REDIS_PREFIX}room:{room_id}:users"
 
     def set_room(self, room_id: str, room_data: Dict[str, Any]) -> None:
         """
@@ -168,6 +169,16 @@ class RedisClient:
         key = self._get_users_key(room_id)
         self._client.hdel(key, user_id)
 
+    def clear_room_users(self, room_id: str) -> None:
+        """
+        清空房间内的所有用户
+
+        Args:
+            room_id: 房间ID
+        """
+        key = self._get_users_key(room_id)
+        self._client.delete(key)
+
     def get_room_user_ids(self, room_id: str) -> list[str]:
         """
         获取房间内所有用户ID列表
@@ -201,14 +212,14 @@ class RedisClient:
         Returns:
             房间ID列表
         """
-        pattern = f"{self._prefix}room:*"
+        pattern = f"{REDIS_PREFIX}room:*"
         keys = self._client.keys(pattern)
         # 提取room_id，过滤掉users键
         room_ids = []
         for key in keys:
             if not key.endswith(":users"):
                 # 提取 "jusi_meet:room:{room_id}" 中的 room_id
-                room_id = key.replace(f"{self._prefix}room:", "")
+                room_id = key.replace(f"{REDIS_PREFIX}room:", "")
                 room_ids.append(room_id)
         return room_ids
 

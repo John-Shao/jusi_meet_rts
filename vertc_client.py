@@ -235,6 +235,20 @@ class VertcClient:
         body = json.dumps(request)
         return self.rtc_service.stop_video_chat(body)
 
+# ============================ 房间管理 ============================
+
+    # 解散房间（BanRoomUser）
+    def ban_room(self, room_id):
+        """封禁房间用户"""
+        request = {
+            "AppId": self.rtc_app_id,
+            "RoomId": room_id,
+        }
+
+        body = json.dumps(request)
+        return self.rtc_service.ban_room_user(body)
+
+
 # veRTC全局实例
 rtc_client: VertcClient = VertcClient()
 

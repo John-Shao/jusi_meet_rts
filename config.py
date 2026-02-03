@@ -39,7 +39,6 @@ class Settings(BaseSettings):
     redis_port: int = 6379
     redis_db: int = 0
     redis_password: str = ""
-    redis_prefix: str = "meet:"
 
     # MySQL配置
     mysql_host: str = "localhost"

@@ -61,6 +61,9 @@ class VertcService(Service):
             "SendUnicast": ApiInfo("POST", "/", {"Action": "SendUnicast", "Version": "2023-07-20"}, {}, {}),
             "SendBroadcast": ApiInfo("POST", "/", {"Action": "SendBroadcast", "Version": "2023-07-20"}, {}, {}),
             "SendRoomUnicast": ApiInfo("POST", "/", {"Action": "SendRoomUnicast", "Version": "2023-07-20"}, {}, {}),
+
+            # 房间管理
+            "BanRoomUser": ApiInfo("POST", "/", {"Action": "BanRoomUser", "Version": "2023-11-01"}, {}, {}),
         }
         return api_info
 
@@ -180,7 +183,7 @@ class VertcService(Service):
         try:
             res = self.json("SendBroadcast", {}, body)
             if res == '':
-                logger.error("SendBroadcast: 收到空响应")
+                logger.error("SendBroadcast: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
@@ -193,7 +196,7 @@ class VertcService(Service):
         try:
             res = self.json("SendRoomUnicast", {}, body)
             if res == '':
-                logger.error("SendRoomUnicast: 收到空响应")
+                logger.error("SendRoomUnicast: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
@@ -201,6 +204,14 @@ class VertcService(Service):
             logger.error(f"SendRoomUnicast 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
+# ============================ 房间管理 ============================
+    # 封禁房间用户（BanRoomUser）
+    def ban_room_user(self, body):
+        res = self.json("BanRoomUser", {}, body)
+        if res == '':
+            raise Exception("BanRoomUser: empty response")
+        res_json = json.loads(res)
+        return res_json
 
 
 # 实时消息通信服务实例
