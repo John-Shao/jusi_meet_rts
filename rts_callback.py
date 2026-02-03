@@ -50,119 +50,27 @@ async def handle_rts_callback(request: Request):
     )
 
 
-# 处理用户加入房间事件
+# 处理用户加入房间通知
 async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
-    rts_event = UserJoinRoomEvent(**event_data)
-
-    # 从数据库查询用户名
-    if len(rts_event.UserId) == 32:
-        user_name = await mysql_client.get_user_name(rts_event.UserId)
-    else:
-        user_name = rts_event.UserId
-
-    user_model = UserModel(
-        user_id=rts_event.UserId,
-        user_name=user_name,
-        camera=DeviceState.OPEN,
-        mic=DeviceState.OPEN,
-        is_silence=SilenceState.NOT_SILENT,
-    )
-    user = MeetingMember(user_model)
-
-    # 将用户加入房间
-    result = await rtsService.check_user_in_room(
-        room_id=rts_event.RoomId,
-        user_id=rts_event.UserId,
-    )
-
-    if result == -1:
-        # 房间不存在，不处理
-        return
-    elif result == 0:
-        # 用户不在房间中，加入房间
-        room: MeetingRoom = await rtsService.join_room(user, rts_event.RoomId)
-    else:
-        # 用户已在房间中，仍可能需要发送通知
-        room: MeetingRoom = await rtsService.get_room(rts_event.RoomId)
-
-    if room.user_count == 1:
-        return  # 如果是第一个用户加入房间，则不需要广播通知
-
-    # 广播通知房间内的用户
-    event = InformVcOnJoinRoom(
-        user=user.to_dict(),
-        user_count=room.user_count,
-    )
-
-    inform = RtsInform(
-        event="vcOnJoinRoom",
-        data=event.model_dump(),
-    )
-
-    body = BroadcastMessageBase(
-        AppId=notify_msg.AppId,
-        RoomId=rts_event.RoomId,
-        Message=inform.model_dump_json(),
-    )
-
-    logger.debug(f"发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
-    response = rtc_service.send_broadcast(body.model_dump_json())
-    logger.debug(f"广播消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    #  rts_event = UserJoinRoomEvent(**event_data)
+    pass
 
 
-# 处理用户离开房间事件
+# 处理用户离开房间通知
 async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
-    rts_event = UserLeaveRoomEvent(**event_data)
-    # 从数据库查询用户名
-    if len(rts_event.UserId) == 32:
-        user_name = await mysql_client.get_user_name(rts_event.UserId)
-    else:
-        user_name = rts_event.UserId
+    # rts_event = UserLeaveRoomEvent(**event_data)
+    pass
 
-    user_model = UserModel(
-        user_id=rts_event.UserId,
-        user_name=user_name,
-        camera=DeviceState.OPEN,
-        mic=DeviceState.OPEN,
-        is_silence=SilenceState.NOT_SILENT,
-    )
-    user = MeetingMember(user_model)
 
-    room: MeetingRoom = await rtsService.get_room(rts_event.RoomId)
-    if not room:
-        return  # 房间不存在，不处理
-
-    # 将用户移出房间
-    await rtsService.leave_room(rts_event.UserId, rts_event.RoomId)
-
-    if room.user_count == 0:
-        rtsService.remove_room(rts_event.RoomId)
-        return  # 如果房间内没有用户了，则不需要广播通知
-
-    # 广播通知房间内的用户
-    event = InformVcOnLeaveRoom(
-        user=user.to_dict(),
-        user_count=room.user_count,
-    )
-
-    inform = RtsInform(
-        event="vcOnLeaveRoom",
-        data=event.model_dump(),
-    )
-
-    body = BroadcastMessageBase(
-        AppId=notify_msg.AppId,
-        RoomId=rts_event.RoomId,
-        Message=inform.model_dump_json(),
-    )
-
-    logger.debug(f"发送广播消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
-    response = rtc_service.send_broadcast(body.model_dump_json())
-    logger.debug(f"广播消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
+# 处理房间销毁通知
+async def handle_room_destroy(notify_msg: RtsCallback, event_data: Dict):
+    # rts_event = RoomDestroyEvent(**event_data)
+    pass
 
 
 # 处理程序映射
 EVENT_HANDLERS = {
     "UserJoinRoom": handle_user_join_room,
     "UserLeaveRoom": handle_user_leave_room,
+    "RoomDestroy": handle_room_destroy,
 }

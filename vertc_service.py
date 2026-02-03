@@ -69,104 +69,159 @@ class VertcService(Service):
 
     # ============================ 云端录制 ============================
 
-    def start_record(self, body):
-        res = self.json("StartRecord", {}, body)
-        if res == '':
-            raise Exception("StartRecord: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def start_record(self, body):
+        try:
+            res = self.json("StartRecord", {}, body)
+            if res == '':
+                logger.error("StartRecord: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StartRecord 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
-    def stop_record(self, body):
-        res = self.json("StopRecord", {}, body)
-        if res == '':
-            raise Exception("StopRecord: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def stop_record(self, body):
+        try:
+            res = self.json("StopRecord", {}, body)
+            if res == '':
+                logger.error("StopRecord: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StopRecord 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
-    def get_record_task(self, params):
-        res = self.get("GetRecordTask", params)
-        if res == '':
-            raise Exception("GetRecordTask: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def get_record_task(self, params):
+        try:
+            res = self.get("GetRecordTask", params)
+            if res == '':
+                logger.error("GetRecordTask: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"GetRecordTask 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     # ============================ 转推直播 ============================
 
     # 启动合流转推（StartPushMixedStreamToCDN）
-    def start_push_mixed_stream_to_cdn(self, body):
-        res = self.json("StartPushMixedStreamToCDN", {}, body)
-        if res == '':
-            raise Exception("StartPushMixedStreamToCDN: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def start_push_mixed_stream_to_cdn(self, body):
+        try:
+            res = self.json("StartPushMixedStreamToCDN", {}, body)
+            if res == '':
+                logger.error("StartPushMixedStreamToCDN: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StartPushMixedStreamToCDN 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止转推直播（StopPushStreamToCDN）
-    def stop_push_stream_to_cdn(self, body):
-        res = self.json("StopPushStreamToCDN", {}, body)
-        if res == '':
-            raise Exception("StopPushStreamToCDN: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def stop_push_stream_to_cdn(self, body):
+        try:
+            res = self.json("StopPushStreamToCDN", {}, body)
+            if res == '':
+                logger.error("StopPushStreamToCDN: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StopPushStreamToCDN 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     # ============================ 输入在线媒体流 ============================
 
     # 开始在线媒体流输入（StartRelayStream）
-    def start_relay_stream(self, body):
-        res = self.json("StartRelayStream", {}, body)
-        if res == '':
-            raise Exception("StartRelayStream: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def start_relay_stream(self, body):
+        try:
+            res = self.json("StartRelayStream", {}, body)
+            if res == '':
+                logger.error("StartRelayStream: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StartRelayStream 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止在线媒体流输入（StopRelayStream）
-    def stop_relay_stream(self, body):
-        res = self.json("StopRelayStream", {}, body)
-        if res == '':
-            raise Exception("StopRelayStream: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def stop_relay_stream(self, body):
+        try:
+            res = self.json("StopRelayStream", {}, body)
+            if res == '':
+                logger.error("StopRelayStream: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StopRelayStream 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     # ============================ 实时对话式AI ============================
 
     # 启动音视频互动智能体（StartVoiceChat）
-    def start_voice_chat(self, body):
-        res = self.json("StartVoiceChat", {}, body)
-        if res == '':
-            raise Exception("StartVoiceChat: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def start_voice_chat(self, body):
+        try:
+            res = self.json("StartVoiceChat", {}, body)
+            if res == '':
+                logger.error("StartVoiceChat: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StartVoiceChat 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止音视频互动智能体（StopVoiceChat）
-    def stop_voice_chat(self, body):
-        res = self.json("StopVoiceChat", {}, body)
-        if res == '':
-            raise Exception("StopVoiceChat: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def stop_voice_chat(self, body):
+        try:
+            res = self.json("StopVoiceChat", {}, body)
+            if res == '':
+                logger.error("StopVoiceChat: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StopVoiceChat 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 
     # ============================ 音视频互动智能体 ============================
 
     # 启动音视频互动智能体（StartVoiceChat）
-    def start_video_chat(self, body):
-        res = self.json("StartVideoChat", {}, body)
-        if res == '':
-            raise Exception("StartVideoChat: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def start_video_chat(self, body):
+        try:
+            res = self.json("StartVideoChat", {}, body)
+            if res == '':
+                logger.error("StartVideoChat: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StartVideoChat 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止音视频互动智能体（StopVoiceChat）
-    def stop_video_chat(self, body):
-        res = self.json("StopVideoChat", {}, body)
-        if res == '':
-            raise Exception("StopVideoChat: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def stop_video_chat(self, body):
+        try:
+            res = self.json("StopVideoChat", {}, body)
+            if res == '':
+                logger.error("StopVideoChat: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"StopVideoChat 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # ============================ 实时消息通信 ============================
 
 # 发送房间外点对点消息（SendUnicast）
-    def send_unicast(self, body):
+    async def send_unicast(self, body):
         try:
             res = self.json("SendUnicast", {}, body)
             if res == '':
@@ -179,7 +234,7 @@ class VertcService(Service):
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # 发送房间内广播消息（SendBroadcast）
-    def send_broadcast(self, body):
+    async def send_broadcast(self, body):
         try:
             res = self.json("SendBroadcast", {}, body)
             if res == '':
@@ -192,7 +247,7 @@ class VertcService(Service):
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # 发送房间内点对点消息（SendRoomUnicast）
-    def send_room_unicast(self, body):
+    async def send_room_unicast(self, body):
         try:
             res = self.json("SendRoomUnicast", {}, body)
             if res == '':
@@ -206,12 +261,17 @@ class VertcService(Service):
 
 # ============================ 房间管理 ============================
     # 封禁房间用户（BanRoomUser）
-    def ban_room_user(self, body):
-        res = self.json("BanRoomUser", {}, body)
-        if res == '':
-            raise Exception("BanRoomUser: empty response")
-        res_json = json.loads(res)
-        return res_json
+    async def ban_room_user(self, body):
+        try:
+            res = self.json("BanRoomUser", {}, body)
+            if res == '':
+                logger.error("BanRoomUser: empty response")
+                return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
+            res_json = json.loads(res)
+            return res_json
+        except Exception as e:
+            logger.error(f"BanRoomUser 调用失败: {str(e)}", exc_info=True)
+            return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 
 # 实时消息通信服务实例

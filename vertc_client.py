@@ -1,7 +1,7 @@
 # coding:utf-8
 import time
 import json
-from vertc_service import VertcService
+from vertc_service import rtc_service
 from access_token import AccessToken, PrivSubscribeStream, PrivPublishStream
 from config import settings
 
@@ -16,15 +16,11 @@ class VertcClient:
 
         self.s2s_app_id = settings.doubao_s2s_app_id
         self.s2s_access_token = settings.doubao_s2s_access_token
-        
-        self.rtc_service = VertcService()
-        self.rtc_service.set_ak(settings.volc_ak)
-        self.rtc_service.set_sk(settings.volc_sk)
 
     # ============================ 转推直播 ============================
 
     # 启动合流转推（StartPushMixedStreamToCDN）
-    def start_push_mixed_stream(self, room_id, user_id, task_id, push_url="", **kwargs):
+    async def start_push_mixed_stream(self, room_id, user_id, task_id, push_url="", **kwargs):
         """启动合流转推"""
         request = {
             "AppId": self.rtc_app_id,
@@ -45,10 +41,10 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.start_push_mixed_stream_to_cdn(body)
+        return rtc_service.start_push_mixed_stream_to_cdn(body)
 
     # 停止合流转推（StopPushStreamToCDN）
-    def stop_push_stream_to_cdn(self, room_id, task_id):    
+    async def stop_push_stream_to_cdn(self, room_id, task_id):    
         """停止合流转推"""
         request = {
             "AppId": self.rtc_app_id,
@@ -57,12 +53,12 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.stop_push_stream_to_cdn(body)
+        return rtc_service.stop_push_stream_to_cdn(body)
 
     # ============================ 输入在线媒体流 ============================
 
     # 启动在线媒体流输入（StartRelayStream）
-    def start_relay_stream(self, room_id, user_id, task_id, stream_url, **kwargs):
+    async def start_relay_stream(self, room_id, user_id, task_id, stream_url, **kwargs):
         """启动在线媒体流输入"""
         atobj = AccessToken(self.rtc_app_id, self.rtc_app_key, room_id, user_id)
         atobj.add_privilege(PrivSubscribeStream, 0)
@@ -84,10 +80,10 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.start_relay_stream(body)
+        return rtc_service.start_relay_stream(body)
     
     # 停止在线媒体流输入（StopRelayStream）
-    def stop_relay_stream(self, room_id, task_id):
+    async def stop_relay_stream(self, room_id, task_id):
         """停止在线媒体流输入"""
         request = {
             "AppId": self.rtc_app_id,
@@ -96,12 +92,12 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.stop_relay_stream(body)
+        return rtc_service.stop_relay_stream(body)
     
     # ============================ 实时对话式AI ============================
 
     # 启动实时对话式AI（StartVoiceChat）
-    def start_voice_chat(self, room_id, bot_id, user_id, task_id, dialog_id, **kwargs):
+    async def start_voice_chat(self, room_id, bot_id, user_id, task_id, dialog_id, **kwargs):
         """启动实时对话式AI"""
         request = {
             "AppId": self.rtc_app_id,
@@ -138,10 +134,10 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.start_voice_chat(body)
+        return rtc_service.start_voice_chat(body)
         
     # 关闭实时对话式AI（StopVoiceChat）
-    def stop_voice_chat(self, room_id, task_id):
+    async def stop_voice_chat(self, room_id, task_id):
         """停止实时对话式AI"""
         request = {
             "AppId": self.rtc_app_id,
@@ -150,12 +146,12 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.stop_voice_chat(body)
+        return rtc_service.stop_voice_chat(body)
     
     # ============================ 音视频互动智能体 ============================
 
     # 启动音视频互动智能体（StartVideoChat）
-    def start_video_chat(self, room_id, bot_id, user_id, task_id, **kwargs):
+    async def start_video_chat(self, room_id, bot_id, user_id, task_id, **kwargs):
         """启动音视频互动智能体"""
         request = {
             "AppId": self.cai_app_id,
@@ -221,10 +217,10 @@ class VertcClient:
             }
         }
         body = json.dumps(request)
-        return self.rtc_service.start_video_chat(body)
+        return rtc_service.start_video_chat(body)
 
     # 关闭音视频互动智能体（StopVideoChat）
-    def stop_video_chat(self, room_id, task_id):
+    async def stop_video_chat(self, room_id, task_id):
         """停止音视频互动智能体"""
         request = {
             "AppId": self.cai_app_id,
@@ -233,12 +229,12 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.stop_video_chat(body)
+        return rtc_service.stop_video_chat(body)
 
 # ============================ 房间管理 ============================
 
     # 解散房间（BanRoomUser）
-    def ban_room(self, room_id):
+    async def ban_room(self, room_id):
         """封禁房间用户"""
         request = {
             "AppId": self.rtc_app_id,
@@ -246,7 +242,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return self.rtc_service.ban_room_user(body)
+        await rtc_service.ban_room_user(body)
 
 
 # veRTC全局实例
