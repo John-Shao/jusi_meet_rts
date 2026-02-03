@@ -68,9 +68,6 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
         # 房间不存在，或用户已在房间中，不处理
         return
     
-    # 将设备加入房间中
-    room: MeetingRoom = await rtsService.join_room(user, rts_event.RoomId)
-
     user_model = UserModel(
         user_id=rts_event.UserId,
         user_name=rts_event.UserId,
@@ -79,6 +76,9 @@ async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
         is_silence=SilenceState.NOT_SILENT,
     )
     user = MeetingMember(user_model)
+
+    # 将设备加入房间中
+    room: MeetingRoom = await rtsService.join_room(user, rts_event.RoomId)
 
     # 发送设备加入房间通知
     await join_room_infom(settings.rtc_app_id, room, user)
