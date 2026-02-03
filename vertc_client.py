@@ -41,7 +41,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return rtc_service.start_push_mixed_stream_to_cdn(body)
+        return await rtc_service.start_push_mixed_stream_to_cdn(body)
 
     # 停止合流转推（StopPushStreamToCDN）
     async def stop_push_stream_to_cdn(self, room_id, task_id):    
@@ -80,7 +80,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return rtc_service.start_relay_stream(body)
+        return await rtc_service.start_relay_stream(body)
     
     # 停止在线媒体流输入（StopRelayStream）
     async def stop_relay_stream(self, room_id, task_id):
@@ -92,7 +92,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return rtc_service.stop_relay_stream(body)
+        return await rtc_service.stop_relay_stream(body)
     
     # ============================ 实时对话式AI ============================
 
@@ -134,7 +134,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return rtc_service.start_voice_chat(body)
+        return await rtc_service.start_voice_chat(body)
         
     # 关闭实时对话式AI（StopVoiceChat）
     async def stop_voice_chat(self, room_id, task_id):
@@ -146,7 +146,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return rtc_service.stop_voice_chat(body)
+        return await rtc_service.stop_voice_chat(body)
     
     # ============================ 音视频互动智能体 ============================
 
@@ -217,7 +217,7 @@ class VertcClient:
             }
         }
         body = json.dumps(request)
-        return rtc_service.start_video_chat(body)
+        return await rtc_service.start_video_chat(body)
 
     # 关闭音视频互动智能体（StopVideoChat）
     async def stop_video_chat(self, room_id, task_id):
@@ -229,7 +229,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        return rtc_service.stop_video_chat(body)
+        return await rtc_service.stop_video_chat(body)
 
 # ============================ 房间管理 ============================
 
@@ -242,7 +242,7 @@ class VertcClient:
         }
 
         body = json.dumps(request)
-        await rtc_service.ban_room_user(body)
+        return await rtc_service.ban_room_user(body)
 
 
 # veRTC全局实例
