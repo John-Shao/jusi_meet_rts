@@ -13,10 +13,13 @@ from typing import Dict
 from schemas import *
 from meeting_member import MeetingMember
 from meeting_room import MeetingRoom
-from utils import generate_token
 from rts_service import rtsService
-from vertc_service import rtc_service
-from mysql_client import mysql_client
+from config import settings
+from rts_inform import (
+    join_room_infom,
+    leave_room_infom,
+    finish_room_infom,
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -52,25 +55,57 @@ async def handle_rts_callback(request: Request):
 
 # 处理用户加入房间通知
 async def handle_user_join_room(notify_msg: RtsCallback, event_data: Dict):
-    #  rts_event = UserJoinRoomEvent(**event_data)
-    pass
+    rts_event = UserJoinRoomEvent(**event_data)
+    if len(rts_event.UserId) == HUMAN_USER_ID_LENGTH:
+        return  # 只有设备需要借助回调方式加入会议
+    
+    result = await rtsService.check_user_in_room(
+        room_id=rts_event.RoomId,
+        user_id=rts_event.UserId,
+    )
+
+    if result == -1 or result == 1:
+        # 房间不存在，或用户已在房间中，不处理
+        return
+    
+    # 将设备加入房间中
+    room: MeetingRoom = await rtsService.join_room(user, rts_event.RoomId)
+
+    user_model = UserModel(
+        user_id=rts_event.UserId,
+        user_name=rts_event.UserId,
+        camera=DeviceState.OPEN,
+        mic=DeviceState.OPEN,
+        is_silence=SilenceState.NOT_SILENT,
+    )
+    user = MeetingMember(user_model)
+
+    # 发送设备加入房间通知
+    await join_room_infom(settings.rtc_app_id, room, user)
 
 
 # 处理用户离开房间通知
 async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
-    # rts_event = UserLeaveRoomEvent(**event_data)
-    pass
-
-
-# 处理房间销毁通知
-async def handle_room_destroy(notify_msg: RtsCallback, event_data: Dict):
-    # rts_event = RoomDestroyEvent(**event_data)
-    pass
+    rts_event = UserLeaveRoomEvent(**event_data)
+    if len(rts_event.UserId) == HUMAN_USER_ID_LENGTH:
+        return  # 只有设备需要借助回调方式退出会议
+    
+    # 将设备移出房间
+    await rtsService.leave_room(rts_event.UserId, rts_event.RoomId)
+    # 如果设备是最后一个离开会议，房间已被销毁
+    room: MeetingRoom = await rtsService.get_room(rts_event.RoomId)
+    if room:
+        # 发送设备离开房间通知
+        await leave_room_infom(settings.rtc_app_id, room, rts_event.UserId)
+    else:
+        # 发送房间销毁通知
+        await finish_room_infom(settings.rtc_app_id, rts_event.RoomId)
+        logger.debug(f"解散房间：{rts_event.RoomId}")
+        await rtc_client.ban_room(rts_event.RoomId)
 
 
 # 处理程序映射
 EVENT_HANDLERS = {
     "UserJoinRoom": handle_user_join_room,
     "UserLeaveRoom": handle_user_leave_room,
-    "RoomDestroy": handle_room_destroy,
 }
