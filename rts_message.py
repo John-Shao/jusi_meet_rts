@@ -113,6 +113,7 @@ async def send_return_message(message: RequestMessageBase):
 
 # 处理加入房间事件
 async def handle_join_room(message: RequestMessageBase, content: Dict):
+    '''
     room_exists = await rtsService.check_room_exists(message.room_id)
     if not room_exists:
         await rtsService.create_room(
@@ -158,7 +159,51 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
         event_name=message.event_name,
         response=response,
     )
+    '''
+    room_exists = await rtsService.check_room_exists(message.room_id)
+    if room_exists:
+        user_name = content.get("user_name")
+        camera = DeviceState(content.get("camera", DeviceState.CLOSED))
+        mic = DeviceState(content.get("mic", DeviceState.CLOSED))
+        is_silence = SilenceState(content.get("is_silence", SilenceState.NOT_SILENT))
+        
+        user_model = UserModel(
+            user_id=message.user_id,
+            user_name=user_name,
+            camera=camera,
+            mic=mic,
+            is_silence=is_silence,
+        )
+        user = MeetingMember(user_model)
 
+        room: MeetingRoom = await rtsService.join_room(user, message.room_id)
+
+        wb_room_id = f"whiteboard_{message.room_id}"
+        wb_user_id = f"whiteboard_{message.user_id}"
+
+        room_dict = room.to_dict()
+        response = JoinMeetingRoomRes(
+            room = room_dict["room_data"],
+            user = user.to_dict(),
+            user_list = [u.to_dict() for u in room.get_all_users()],
+            token = generate_token(user.id, message.room_id),
+            wb_room_id = wb_room_id,
+            wb_user_id = wb_user_id,
+            wb_token = generate_token(wb_user_id, wb_room_id),
+        )
+
+        res = ResponseMessageBase(
+            request_id=message.request_id,
+            event_name=message.event_name,
+            response=response,
+        )
+    else:
+        res = ResponseMessageBase(
+            code=422,
+            request_id=message.request_id,
+            event_name=message.event_name,
+            message="room not exists",
+        )
 
     body = UnicastMessageBase(
         AppId=message.app_id,
