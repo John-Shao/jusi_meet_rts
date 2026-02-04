@@ -9,7 +9,7 @@ from config import settings
 # ============================ 转推直播 ============================
 
 # 启动合流转推（StartPushMixedStreamToCDN）
-async def start_push_mixed_stream(self, room_id, user_id, task_id, push_url="", **kwargs):
+async def start_push_mixed_stream(room_id, user_id, task_id, push_url="", **kwargs):
     """启动合流转推"""
     request = {
         "AppId": settings.rtc_app_id,
@@ -33,7 +33,7 @@ async def start_push_mixed_stream(self, room_id, user_id, task_id, push_url="", 
     return await rtc_service.start_push_mixed_stream_to_cdn(body)
 
 # 停止合流转推（StopPushStreamToCDN）
-async def stop_push_stream_to_cdn(self, room_id, task_id):    
+async def stop_push_stream_to_cdn(room_id, task_id):    
     """停止合流转推"""
     request = {
         "AppId": settings.rtc_app_id,
@@ -47,7 +47,7 @@ async def stop_push_stream_to_cdn(self, room_id, task_id):
 # ============================ 输入在线媒体流 ============================
 
 # 启动在线媒体流输入（StartRelayStream）
-async def start_relay_stream(self, room_id, user_id, task_id, stream_url, **kwargs):
+async def start_relay_stream(room_id, user_id, task_id, stream_url, **kwargs):
     """启动在线媒体流输入"""
     atobj = AccessToken(settings.rtc_app_id, settings.rtc_app_key, room_id, user_id)
     atobj.add_privilege(PrivSubscribeStream, 0)
@@ -72,7 +72,7 @@ async def start_relay_stream(self, room_id, user_id, task_id, stream_url, **kwar
     return await rtc_service.start_relay_stream(body)
 
 # 停止在线媒体流输入（StopRelayStream）
-async def stop_relay_stream(self, room_id, task_id):
+async def stop_relay_stream(room_id, task_id):
     """停止在线媒体流输入"""
     request = {
         "AppId": settings.rtc_app_id,
@@ -86,7 +86,7 @@ async def stop_relay_stream(self, room_id, task_id):
 # ============================ 实时对话式AI ============================
 
 # 启动实时对话式AI（StartVoiceChat）
-async def start_voice_chat(self, room_id, bot_id, user_id, task_id, dialog_id, **kwargs):
+async def start_voice_chat(room_id, bot_id, user_id, task_id, dialog_id, **kwargs):
     """启动实时对话式AI"""
     request = {
         "AppId": settings.rtc_app_id,
@@ -126,7 +126,7 @@ async def start_voice_chat(self, room_id, bot_id, user_id, task_id, dialog_id, *
     return await rtc_service.start_voice_chat(body)
     
 # 关闭实时对话式AI（StopVoiceChat）
-async def stop_voice_chat(self, room_id, task_id):
+async def stop_voice_chat(room_id, task_id):
     """停止实时对话式AI"""
     request = {
         "AppId": settings.rtc_app_id,
@@ -140,7 +140,7 @@ async def stop_voice_chat(self, room_id, task_id):
 # ============================ 音视频互动智能体 ============================
 
 # 启动音视频互动智能体（StartVideoChat）
-async def start_video_chat(self, room_id, bot_id, user_id, task_id, **kwargs):
+async def start_video_chat(room_id, bot_id, user_id, task_id, **kwargs):
     """启动音视频互动智能体"""
     request = {
         "AppId": settings.volc_cai_app_id,
@@ -209,7 +209,7 @@ async def start_video_chat(self, room_id, bot_id, user_id, task_id, **kwargs):
     return await rtc_service.start_video_chat(body)
 
 # 关闭音视频互动智能体（StopVideoChat）
-async def stop_video_chat(self, room_id, task_id):
+async def stop_video_chat(room_id, task_id):
     """停止音视频互动智能体"""
     request = {
         "AppId": settings.volc_cai_app_id,
@@ -223,7 +223,7 @@ async def stop_video_chat(self, room_id, task_id):
 # ============================ 房间管理 ============================
 
 # 解散房间（BanRoomUser）
-async def ban_room(self, room_id):
+async def ban_room(room_id):
     """封禁房间用户"""
     request = {
         "AppId": settings.rtc_app_id,
