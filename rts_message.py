@@ -18,11 +18,11 @@ from meeting_room import MeetingRoom
 from utils import generate_token
 from rts_service import rtsService
 from vertc_service import rtc_service
-from vertc_client import rtc_client
+from vertc_client import ban_room
 from rts_inform import (
-    finish_room_infom,
     join_room_infom,
     leave_room_infom,
+    finish_room_infom,
     )
 
 
@@ -113,53 +113,6 @@ async def send_return_message(message: RequestMessageBase):
 
 # 处理加入房间事件
 async def handle_join_room(message: RequestMessageBase, content: Dict):
-    '''
-    room_exists = await rtsService.check_room_exists(message.room_id)
-    if not room_exists:
-        await rtsService.create_room(
-            message.room_id,
-            message.user_id,
-            content.get("user_name", "John"),
-            f"R{message.room_id}",
-            "X5",
-            )
-
-    user_name = content.get("user_name")
-    camera = DeviceState(content.get("camera", DeviceState.CLOSED))
-    mic = DeviceState(content.get("mic", DeviceState.CLOSED))
-    is_silence = SilenceState(content.get("is_silence", SilenceState.NOT_SILENT))
-    
-    user_model = UserModel(
-        user_id=message.user_id,
-        user_name=user_name,
-        camera=camera,
-        mic=mic,
-        is_silence=is_silence,
-    )
-    user = MeetingMember(user_model)
-
-    room: MeetingRoom = await rtsService.join_room(user, message.room_id)
-
-    wb_room_id = f"whiteboard_{message.room_id}"
-    wb_user_id = f"whiteboard_{message.user_id}"
-
-    room_dict = room.to_dict()
-    response = JoinMeetingRoomRes(
-        room = room_dict["room_data"],
-        user = user.to_dict(),
-        user_list = [u.to_dict() for u in room.get_all_users()],
-        token = generate_token(user.id, message.room_id),
-        wb_room_id = wb_room_id,
-        wb_user_id = wb_user_id,
-        wb_token = generate_token(wb_user_id, wb_room_id),
-    )
-
-    res = ResponseMessageBase(
-        request_id=message.request_id,
-        event_name=message.event_name,
-        response=response,
-    )
-    '''
     room_exists = await rtsService.check_room_exists(message.room_id)
     if room_exists:
         user_name = content.get("user_name")
@@ -204,7 +157,7 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
             event_name=message.event_name,
             message="room not exists",
         )
-
+    
     body = UnicastMessageBase(
         AppId=message.app_id,
         To=message.user_id,
@@ -243,7 +196,7 @@ async def handle_leave_room(message: RequestMessageBase, content: Dict):
     room = await rtsService.get_room(message.room_id)
     if not room:
         logger.debug(f"解散房间：{message.room_id}")
-        await rtc_client.ban_room(message.room_id)
+        await ban_room(message.room_id)
     else:
         await leave_room_infom(message.app_id, room, message.user_id)
 
@@ -273,7 +226,7 @@ async def handle_finish_room(message: RequestMessageBase, content: Dict):
     await finish_room_infom(message.app_id, message.room_id)
 
     logger.debug(f"解散房间：{message.room_id}")
-    await rtc_client.ban_room(message.room_id)
+    await ban_room(message.room_id)
 
 
 # 处理重连同步
