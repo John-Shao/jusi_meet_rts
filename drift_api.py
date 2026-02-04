@@ -24,28 +24,24 @@ async def drift_join_room(data: DriftJoinRequest):
 
     try:
         # 启动合流转推
-        response = await start_push_mixed_stream(
+        await start_push_mixed_stream(
             room_id=data.room_id,
             user_id=data.device_sn,  # 排除的用户ID
             task_id=data.device_sn,
             push_url=dn_rtmp_url,
         )
 
-        logger.info(f"启动合流转推: {response}")
-
         # 启动在线媒体流输入
-        response = await start_relay_stream(
+        await start_relay_stream(
             room_id=data.room_id,
             user_id=data.device_sn,  # 在线媒体流输入的用户ID
             task_id=data.device_sn,
             stream_url=up_rtmp_url,
         )
 
-        logger.info(f"启动在线媒体流输入: {response}")
-
         # 启动实时对话式AI
         '''
-        response = await rtc_client.start_voice_chat(
+        await rtc_client.start_voice_chat(
             room_id=data.room_id,
             bot_id=data.device_sn,
             user_id=data.user_id,
@@ -74,29 +70,23 @@ async def drift_leave_room(data: DriftLeaveRequest):
 
     try:
         # 停止合流转推
-        response = await stop_push_stream_to_cdn(
+        await stop_push_stream_to_cdn(
             room_id=data.room_id,
             task_id=data.device_sn
         )
-
-        logger.info(f"停止合流转推: {response}")
 
         # 停止在线媒体流输入
-        response = await stop_relay_stream(
+        await stop_relay_stream(
             room_id=data.room_id,
             task_id=data.device_sn
         )
-
-        logger.info(f"停止在线媒体流输入: {response}")
 
         # 关闭实时对话式AI
         '''
-        response = await rtc_client.stop_voice_chat(
+        await rtc_client.stop_voice_chat(
             room_id=data.room_id,
             task_id=data.device_sn
         )
-
-        logger.info(f"关闭实时对话式AI: {response}")
         '''
         return DriftResponseBase()
 

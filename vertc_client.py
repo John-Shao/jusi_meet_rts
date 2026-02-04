@@ -1,10 +1,13 @@
 # coding:utf-8
 import time
 import json
+import logging
 from vertc_service import rtc_service
 from access_token import AccessToken, PrivSubscribeStream, PrivPublishStream
 from config import settings
 
+
+logger = logging.getLogger(__name__)
 
 # ============================ 转推直播 ============================
 
@@ -29,8 +32,14 @@ async def start_push_mixed_stream(room_id, user_id, task_id, push_url="", **kwar
         }
     }
 
+    logger.debug(f"启动合流转推请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.start_push_mixed_stream_to_cdn(body)
+    response = await rtc_service.start_push_mixed_stream_to_cdn(body)
+
+    logger.debug(f"启动合流转推响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
+
 
 # 停止合流转推（StopPushStreamToCDN）
 async def stop_push_stream_to_cdn(room_id, task_id):    
@@ -41,8 +50,13 @@ async def stop_push_stream_to_cdn(room_id, task_id):
         "TaskId": task_id
     }
 
+    logger.debug(f"停止合流转推请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return rtc_service.stop_push_stream_to_cdn(body)
+    response = await rtc_service.stop_push_stream_to_cdn(body)
+
+    logger.debug(f"停止合流转推响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
 
 # ============================ 输入在线媒体流 ============================
 
@@ -68,8 +82,14 @@ async def start_relay_stream(room_id, user_id, task_id, stream_url, **kwargs):
         }
     }
 
+    logger.debug(f"启动在线媒体流输入请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.start_relay_stream(body)
+    response = await rtc_service.start_relay_stream(body)
+
+    logger.debug(f"启动在线媒体流输入响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
+
 
 # 停止在线媒体流输入（StopRelayStream）
 async def stop_relay_stream(room_id, task_id):
@@ -80,8 +100,13 @@ async def stop_relay_stream(room_id, task_id):
         "TaskId": task_id
     }
 
+    logger.debug(f"停止在线媒体流输入请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.stop_relay_stream(body)
+    response = await rtc_service.stop_relay_stream(body)
+
+    logger.debug(f"停止在线媒体流输入响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
 
 # ============================ 实时对话式AI ============================
 
@@ -122,8 +147,14 @@ async def start_voice_chat(room_id, bot_id, user_id, task_id, dialog_id, **kwarg
         }
     }
 
+    logger.debug(f"启动实时对话式AI请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.start_voice_chat(body)
+    response = await rtc_service.start_voice_chat(body)
+
+    logger.debug(f"启动实时对话式AI响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
+    
     
 # 关闭实时对话式AI（StopVoiceChat）
 async def stop_voice_chat(room_id, task_id):
@@ -134,8 +165,13 @@ async def stop_voice_chat(room_id, task_id):
         "TaskId": task_id
     }
 
+    logger.debug(f"关闭实时对话式AI请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.stop_voice_chat(body)
+    response = await rtc_service.stop_voice_chat(body)
+
+    logger.debug(f"关闭实时对话式AI响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
 
 # ============================ 音视频互动智能体 ============================
 
@@ -205,8 +241,15 @@ async def start_video_chat(room_id, bot_id, user_id, task_id, **kwargs):
             }
         }
     }
+
+    logger.debug(f"启动音视频互动智能体请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.start_video_chat(body)
+    response = await rtc_service.start_video_chat(body)
+
+    logger.debug(f"启动音视频互动智能体响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
+
 
 # 关闭音视频互动智能体（StopVideoChat）
 async def stop_video_chat(room_id, task_id):
@@ -217,8 +260,13 @@ async def stop_video_chat(room_id, task_id):
         "TaskId": task_id
     }
 
+    logger.debug(f"关闭音视频互动智能体请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.stop_video_chat(body)
+    response = await rtc_service.stop_video_chat(body)
+
+    logger.debug(f"关闭音视频互动智能体响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
 
 # ============================ 房间管理 ============================
 
@@ -230,8 +278,13 @@ async def ban_room(room_id):
         "RoomId": room_id,
     }
 
+    logger.debug(f"解散房间请求: {json.dumps(request, indent=2, ensure_ascii=False)}")
+
     body = json.dumps(request)
-    return await rtc_service.ban_room_user(body)
+    response = await rtc_service.ban_room_user(body)
+
+    logger.debug(f"解散房间响应: {json.dumps(response, indent=2, ensure_ascii=False)}")
+    return response
 
 
 # 测试代码
