@@ -41,7 +41,7 @@ async def drift_join_room(data: DriftJoinRequest):
 
         # 启动实时对话式AI
         '''
-        await rtc_client.start_voice_chat(
+        await start_voice_chat(
             room_id=data.room_id,
             bot_id=data.device_sn,
             user_id=data.user_id,
@@ -83,7 +83,7 @@ async def drift_leave_room(data: DriftLeaveRequest):
 
         # 关闭实时对话式AI
         '''
-        await rtc_client.stop_voice_chat(
+        await stop_voice_chat(
             room_id=data.room_id,
             task_id=data.device_sn
         )
