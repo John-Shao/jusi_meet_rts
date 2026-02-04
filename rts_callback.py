@@ -15,6 +15,7 @@ from meeting_member import MeetingMember
 from meeting_room import MeetingRoom
 from rts_service import rtsService
 from config import settings
+from drift_api import drift_leave_room
 from rts_inform import (
     join_room_infom,
     leave_room_infom,
@@ -102,6 +103,13 @@ async def handle_user_leave_room(notify_msg: RtsCallback, event_data: Dict):
         await finish_room_infom(settings.rtc_app_id, rts_event.RoomId)
         logger.debug(f"解散房间：{rts_event.RoomId}")
         await rtc_client.ban_room(rts_event.RoomId)
+        # 相机离开房间后，停止转推和它相关的媒体流
+        await drift_leave_room(
+            DriftLeaveRequest(
+            room_id=rts_event.RoomId,
+            device_sn=rts_event.UserId,
+            )
+        )
 
 
 # 处理程序映射
