@@ -1,15 +1,12 @@
 # coding:utf-8
 import json
 import threading
-import logging
 
 from volcengine.ApiInfo import ApiInfo
 from volcengine.Credentials import Credentials
 from volcengine.base.Service import Service
 from volcengine.ServiceInfo import ServiceInfo
 from config import settings
-
-logger = logging.getLogger(__name__)
 
 
 class VertcService(Service):
@@ -73,36 +70,30 @@ class VertcService(Service):
         try:
             res = self.json("StartRecord", {}, body)
             if res == '':
-                logger.error("StartRecord: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StartRecord 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     async def stop_record(self, body):
         try:
             res = self.json("StopRecord", {}, body)
             if res == '':
-                logger.error("StopRecord: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StopRecord 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     async def get_record_task(self, params):
         try:
             res = self.get("GetRecordTask", params)
             if res == '':
-                logger.error("GetRecordTask: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"GetRecordTask 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     # ============================ 转推直播 ============================
@@ -112,12 +103,10 @@ class VertcService(Service):
         try:
             res = self.json("StartPushMixedStreamToCDN", {}, body)
             if res == '':
-                logger.error("StartPushMixedStreamToCDN: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StartPushMixedStreamToCDN 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止转推直播（StopPushStreamToCDN）
@@ -125,12 +114,10 @@ class VertcService(Service):
         try:
             res = self.json("StopPushStreamToCDN", {}, body)
             if res == '':
-                logger.error("StopPushStreamToCDN: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StopPushStreamToCDN 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     # ============================ 输入在线媒体流 ============================
@@ -140,12 +127,10 @@ class VertcService(Service):
         try:
             res = self.json("StartRelayStream", {}, body)
             if res == '':
-                logger.error("StartRelayStream: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StartRelayStream 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止在线媒体流输入（StopRelayStream）
@@ -153,12 +138,10 @@ class VertcService(Service):
         try:
             res = self.json("StopRelayStream", {}, body)
             if res == '':
-                logger.error("StopRelayStream: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StopRelayStream 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
     # ============================ 实时对话式AI ============================
@@ -168,12 +151,10 @@ class VertcService(Service):
         try:
             res = self.json("StartVoiceChat", {}, body)
             if res == '':
-                logger.error("StartVoiceChat: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StartVoiceChat 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止音视频互动智能体（StopVoiceChat）
@@ -181,12 +162,10 @@ class VertcService(Service):
         try:
             res = self.json("StopVoiceChat", {}, body)
             if res == '':
-                logger.error("StopVoiceChat: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StopVoiceChat 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 
@@ -197,12 +176,10 @@ class VertcService(Service):
         try:
             res = self.json("StartVideoChat", {}, body)
             if res == '':
-                logger.error("StartVideoChat: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StartVideoChat 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
     
     # 停止音视频互动智能体（StopVoiceChat）
@@ -210,12 +187,10 @@ class VertcService(Service):
         try:
             res = self.json("StopVideoChat", {}, body)
             if res == '':
-                logger.error("StopVideoChat: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"StopVideoChat 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # ============================ 实时消息通信 ============================
@@ -225,12 +200,10 @@ class VertcService(Service):
         try:
             res = self.json("SendUnicast", {}, body)
             if res == '':
-                logger.error("SendUnicast: 收到空响应")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"SendUnicast 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # 发送房间内广播消息（SendBroadcast）
@@ -238,12 +211,10 @@ class VertcService(Service):
         try:
             res = self.json("SendBroadcast", {}, body)
             if res == '':
-                logger.error("SendBroadcast: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"SendBroadcast 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # 发送房间内点对点消息（SendRoomUnicast）
@@ -251,12 +222,10 @@ class VertcService(Service):
         try:
             res = self.json("SendRoomUnicast", {}, body)
             if res == '':
-                logger.error("SendRoomUnicast: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"SendRoomUnicast 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 # ============================ 房间管理 ============================
@@ -265,12 +234,10 @@ class VertcService(Service):
         try:
             res = self.json("BanRoomUser", {}, body)
             if res == '':
-                logger.error("BanRoomUser: empty response")
                 return {"ResponseMetadata": {"Error": {"Code": "EmptyResponse", "Message": "Empty response from server"}}}
             res_json = json.loads(res)
             return res_json
         except Exception as e:
-            logger.error(f"BanRoomUser 调用失败: {str(e)}", exc_info=True)
             return {"ResponseMetadata": {"Error": {"Code": "APICallFailed", "Message": f"API call failed: {str(e)}"}}}
 
 
