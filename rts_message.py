@@ -131,6 +131,9 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
 
         room: MeetingRoom = await rtsService.join_room(user, message.room_id)
 
+        # 发送用户加入房间通知
+        await join_room_infom(message.app_id, room, user)
+
         wb_room_id = f"whiteboard_{message.room_id}"
         wb_user_id = f"whiteboard_{message.user_id}"
 
@@ -167,8 +170,6 @@ async def handle_join_room(message: RequestMessageBase, content: Dict):
     logger.debug(f"发送房间外点对点消息: {json.dumps(body.model_dump(), indent=2, ensure_ascii=False)}")
     response = await rtc_service.send_unicast(body.model_dump_json())
     logger.debug(f"房间外点对点消息发送结果: {json.dumps(response, indent=2, ensure_ascii=False)}")
-    # 发送用户加入房间通知
-    await join_room_infom(message.app_id, room, user)
 
 
 # 处理离开房间事件
