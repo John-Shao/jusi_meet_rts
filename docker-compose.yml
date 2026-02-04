@@ -19,7 +19,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_USER: ${MYSQL_USER:-jusi}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-jusi_meet}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-jusi_db}
 
       # Redis配置 - 使用外部基础设施服务的容器名
       REDIS_HOST: jusi_redis
