@@ -30,7 +30,7 @@ async def book_meeting(request: BookMeetingRequest):
         预定结果
     """
     try:
-        success = await rtsService.create_room(
+        result = await rtsService.create_room(
             room_id=request.room_id,
             host_user_id=request.host_user_id,
             host_user_name=request.host_user_name,
@@ -38,19 +38,26 @@ async def book_meeting(request: BookMeetingRequest):
             host_device_sn=request.host_device_sn,
         )
 
-        if success:
+        if result == 0:
             return BookMeetingResponse(
                 code=200,
                 room_id=request.room_id,
                 room_name=request.room_name or request.room_id,
                 message="会议预定成功"
             )
-        else:
+        elif result == 1:
             return BookMeetingResponse(
                 code=400,
                 room_id=request.room_id,
                 room_name=request.room_name or request.room_id,
-                message="会议已存在，预定失败"
+                message="会议号已被占用，预定失败"
+            )
+        elif result == 2:
+            return BookMeetingResponse(
+                code=632,
+                room_id=request.room_id,
+                room_name=request.room_name or request.room_id,
+                message="设备已有房间，预定失败"
             )
     except Exception as e:
         logger.error(f"预定会议失败: {e}")
@@ -219,7 +226,7 @@ async def camera_join(request: CameraJoinRequest):
     try:
         # 如果 action_type = 0，需要先预定会议
         if request.action_type == 0:
-            success = await rtsService.create_room(
+            result = await rtsService.create_room(
                 room_id=request.room_id,
                 host_user_id=request.holder_user_id,
                 host_user_name=request.holder_user_name,
@@ -227,12 +234,15 @@ async def camera_join(request: CameraJoinRequest):
                 host_device_sn=request.device_sn,
             )
 
-            if not success:
+            if result == 1:
                 return CameraJoinResponse(
                     code=400,
-                    rtmp_url="",
-                    rtsp_url="",
-                    message="会议已存在"
+                    message="会议号已被占用"
+                )
+            elif result == 2:
+                return CameraJoinResponse(
+                    code=632,
+                    message="设备已有房间"
                 )
         # 如果 action_type = 1，直接加入会议
         elif request.action_type == 1:

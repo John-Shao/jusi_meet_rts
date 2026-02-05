@@ -50,18 +50,35 @@ class RtsService:
             self, room_id: str,
             host_user_id: str,
             host_user_name: str,
-            room_name: str = None,
-            host_device_sn: str = None
-            ) -> bool:
+            room_name: str,
+            host_device_sn: str
+            ) -> int:
+        """
+        创建房间
+
+        Returns:
+            0: 成功
+            1: room_id 冲突（已被占用）
+            2: 设备已有房间
+        """
         # 检查房间是否已存在
         if redis_client.exists_room(room_id):
-            return False
+            return 1
+
+        # 检查设备是否已在某个房间中
+        all_room_ids = redis_client.get_all_room_ids()
+        for existing_room_id in all_room_ids:
+            room_data = redis_client.get_room(existing_room_id)
+            if room_data:
+                room_state = RoomState.model_validate(room_data)
+                if room_state.host_device_sn == host_device_sn:
+                    return 2
 
         # 创建房间
         room_state = RoomState(
             app_id=settings.rtc_app_id,
             room_id=room_id,
-            room_name=room_name or room_id,
+            room_name=room_name,
             host_user_id=host_user_id,
             host_user_name=host_user_name,
             host_device_sn=host_device_sn,
@@ -69,7 +86,7 @@ class RtsService:
             base_time=current_timestamp_s(),
         )
         redis_client.set_room(room_id, room_state.model_dump())
-        return True
+        return 0
 
 
     # 取消会议
