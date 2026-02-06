@@ -29,6 +29,10 @@ class RedisClient:
         """生成房间用户列表的Redis键"""
         return f"{REDIS_PREFIX}room:{room_id}:users"
 
+    def _get_user_room_key(self, user_id: str) -> str:
+        """生成用户->房间映射的Redis键"""
+        return f"{REDIS_PREFIX}user:{user_id}:room"
+
     def set_room(self, room_id: str, room_data: Dict[str, Any]) -> None:
         """
         保存房间信息到Redis
@@ -222,6 +226,40 @@ class RedisClient:
                 room_id = key.replace(f"{REDIS_PREFIX}room:", "")
                 room_ids.append(room_id)
         return room_ids
+
+    def set_user_room(self, user_id: str, room_id: str) -> None:
+        """
+        设置用户所在的房间（建立映射关系）
+
+        Args:
+            user_id: 用户ID
+            room_id: 房间ID
+        """
+        key = self._get_user_room_key(user_id)
+        self._client.set(key, room_id)
+
+    def get_user_room(self, user_id: str) -> Optional[str]:
+        """
+        获取用户所在的房间ID
+
+        Args:
+            user_id: 用户ID
+
+        Returns:
+            房间ID，如果用户不在任何房间则返回None
+        """
+        key = self._get_user_room_key(user_id)
+        return self._client.get(key)
+
+    def remove_user_room(self, user_id: str) -> None:
+        """
+        移除用户的房间映射关系
+
+        Args:
+            user_id: 用户ID
+        """
+        key = self._get_user_room_key(user_id)
+        self._client.delete(key)
 
     def ping(self) -> bool:
         """

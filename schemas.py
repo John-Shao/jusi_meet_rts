@@ -240,11 +240,11 @@ class DriftLeaveRequest(BaseModel):
 # 相机加入会议请求
 class CameraJoinRequest(BaseModel):
     room_id: str
-    device_sn: str = None
+    device_sn: str = ""
     action_type: int = 0  # 0:发起会议, 1:加入会议
-    room_name: Optional[str] = None
-    holder_user_id: str = None  # 设备持有者用户ID
-    holder_user_name: str = None  # 设备持有者用户名
+    room_name: Optional[str] = ""
+    holder_user_id: str = ""  # 设备持有者用户ID
+    holder_user_name: str = ""  # 设备持有者用户名
 
 # 相机加入会议响应
 class CameraJoinResponse(BaseModel):
@@ -256,27 +256,12 @@ class CameraJoinResponse(BaseModel):
 # 相机离开会议请求
 class CameraLeaveRequest(BaseModel):
     room_id: str
-    device_sn: str = None
+    device_sn: str = ""
 
 # 相机离开会议响应
 class CameraLeaveResponse(BaseModel):
     code: int = 200
     message: Optional[str] = ""
-
-# 预定会议请求
-class BookMeetingRequest(BaseModel):
-    room_id: str
-    room_name: Optional[str] = None
-    host_user_id: str
-    host_user_name: str
-    host_device_sn: Optional[str] = None
-
-# 预定会议响应
-class BookMeetingResponse(BaseModel):
-    code: int  # 200:成功, 400:会议已存在, 500:服务器错误
-    room_id: str
-    room_name: str
-    message: Optional[str] = None
 
 # 取消会议请求
 class CancelMeetingRequest(BaseModel):
@@ -287,7 +272,7 @@ class CancelMeetingRequest(BaseModel):
 class CancelMeetingResponse(BaseModel):
     code: int  # 200:成功, 403:权限不足, 404:房间不存在, 409:会议中有人, 500:服务器错误
     room_id: str
-    message: Optional[str] = None
+    message: Optional[str] = ""
 
 # 查询我的会议请求
 class GetMyMeetingsRequest(BaseModel):
@@ -308,7 +293,7 @@ class GetMyMeetingsResponse(BaseModel):
     code: int  # 200:成功, 500:服务器错误
     meetings: List[MeetingInfo]
     total: int
-    message: Optional[str] = None
+    message: Optional[str] = ""
 
 # 检查房间是否存在请求
 class CheckRoomRequest(BaseModel):
@@ -319,7 +304,7 @@ class CheckRoomResponse(BaseModel):
     code: int  # 200:成功, 500:服务器错误
     room_id: str
     exists: bool
-    message: Optional[str] = None
+    message: Optional[str] = ""
 
 # 检查用户是否在房间中请求
 class CheckUserInRoomRequest(BaseModel):
@@ -332,10 +317,21 @@ class CheckUserInRoomResponse(BaseModel):
     room_id: str
     user_id: str
     in_room: bool
-    message: Optional[str] = None
+    message: Optional[str] = ""
 
 # 生成房间号响应
 class GenerateRoomIdResponse(BaseModel):
     code: int  # 200:成功, 500:服务器错误
-    room_id: Optional[str] = None
-    message: Optional[str] = None
+    room_id: Optional[str] = ""
+    message: Optional[str] = ""
+
+# 查询设备所在房间请求
+class GetDeviceRoomRequest(BaseModel):
+    device_sn: str  # 设备序列号
+
+# 查询设备所在房间响应
+class GetDeviceRoomResponse(BaseModel):
+    code: int  # 200:成功, 404:设备不在任何房间中, 500:服务器错误
+    device_sn: str
+    room_id: Optional[str] = ""
+    message: Optional[str] = ""

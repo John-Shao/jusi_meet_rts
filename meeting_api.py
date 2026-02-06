@@ -300,3 +300,43 @@ async def generate_room_id():
             code=500,
             message=f"服务器错误: {str(e)}"
         )
+
+
+# 查询设备所在房间
+@meeting_router.post("/meeting/get-device-room", response_model=GetDeviceRoomResponse)
+async def get_device_room(request: GetDeviceRoomRequest):
+    """
+    查询设备所在的房间
+
+    Args:
+        request: 查询设备所在房间请求
+
+    Returns:
+        设备所在的房间信息
+    """
+    try:
+        room_id = await rtsService.get_device_room(device_sn=request.device_sn)
+
+        if room_id:
+            return GetDeviceRoomResponse(
+                code=200,
+                device_sn=request.device_sn,
+                room_id=room_id,
+                message="查询成功"
+            )
+        else:
+            return GetDeviceRoomResponse(
+                code=404,
+                device_sn=request.device_sn,
+                room_id=None,
+                message="设备不在任何房间中"
+            )
+
+    except Exception as e:
+        logger.error(f"查询设备所在房间失败: {e}")
+        return GetDeviceRoomResponse(
+            code=500,
+            device_sn=request.device_sn,
+            room_id=None,
+            message=f"服务器错误: {str(e)}"
+        )

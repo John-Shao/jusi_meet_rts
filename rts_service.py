@@ -65,14 +65,9 @@ class RtsService:
         if redis_client.exists_room(room_id):
             return 1
 
-        # 检查设备是否已在某个房间中
-        all_room_ids = redis_client.get_all_room_ids()
-        for existing_room_id in all_room_ids:
-            room_data = redis_client.get_room(existing_room_id)
-            if room_data:
-                room_state = RoomState.model_validate(room_data)
-                if room_state.host_device_sn == host_device_sn:
-                    return 2
+        # 检查设备是否已在房间中
+        if redis_client.get_user_room(host_device_sn):
+            return 2  # 设备已在其他房间中
 
         # 创建房间
         room_state = RoomState(
@@ -125,8 +120,8 @@ class RtsService:
         return 200, "会议已取消"
 
 
-    # 查询用户的所有会议
-    async def get_user_rooms(self, user_id: str, role: UserRole) -> List[Dict[str, Any]]:
+    # 查询用户创建的所有会议
+    async def get_my_rooms(self, user_id: str) -> List[Dict[str, Any]]:
         meetings = []
         all_room_ids = redis_client.get_all_room_ids()
 
@@ -134,19 +129,7 @@ class RtsService:
             room_data = redis_client.get_room(room_id)
             if room_data:
                 room_state = RoomState.model_validate(room_data)
-                is_host = room_state.host_user_id == user_id
-                is_participant = redis_client.get_room_user(room_id, user_id) is not None
-
-                # 根据 role 参数过滤
-                should_include = False
-                if role == UserRole.HOST:
-                    # 只返回作为主持人的会议
-                    should_include = is_host
-                elif role == UserRole.VISITOR:
-                    # 只返回作为访客/普通参会者的会议（不是主持人）
-                    should_include = is_participant and not is_host
-
-                if should_include:
+                if room_state.host_user_id == user_id:
                     user_count = redis_client.get_room_user_count(room_id)
                     meetings.append({
                         "room_id": room_state.room_id,
@@ -158,6 +141,11 @@ class RtsService:
                     })
 
         return meetings
+    
+
+    # 获取设备所在房间
+    async def get_device_room(self, device_sn: str) -> str:
+        return redis_client.get_user_room(device_sn) or None
 
 
     # 检查房间是否存在
@@ -185,6 +173,8 @@ class RtsService:
             room.add_user(user)
             # 保存用户到 Redis（细粒度操作）
             redis_client.add_room_user(room_id, user.id, user.to_dict())
+            # 建立用户->房间的映射关系
+            redis_client.set_user_room(user.id, room_id)
 
         # 返回完整房间数据（加载所有用户）
         return room
@@ -194,6 +184,8 @@ class RtsService:
     async def leave_room(self, user_id: str, room_id: str) -> None:
         if redis_client.exists_room(room_id):
             redis_client.remove_room_user(room_id, user_id)
+            # 解除用户->房间的映射关系
+            redis_client.remove_user_room(user_id)
             if redis_client.get_room_user_count(room_id) == 0:
                 # 房间没有用户了，从Redis中删除
                 redis_client.delete_room(room_id)
@@ -205,7 +197,11 @@ class RtsService:
         if room_data:
             room_state = RoomState.model_validate(room_data)
             assert room_state.host_user_id == user_id, "只允许主持人关闭房间"
-            # 从Redis中删除
+            # 获取房间内所有用户ID，解除所有用户的映射关系
+            user_ids = redis_client.get_room_user_ids(room_id)
+            for uid in user_ids:
+                redis_client.remove_user_room(uid)
+            # 从Redis中删除房间数据
             redis_client.clear_room_users(room_id)
             redis_client.delete_room(room_id)
 
