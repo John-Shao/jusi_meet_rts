@@ -13,93 +13,10 @@ from schemas import *
 from rts_service import rtsService
 from drift_api import drift_join_room, drift_leave_room
 
+
 logger = logging.getLogger(__name__)
 
 meeting_router = APIRouter()
-
-# 预定会议
-@meeting_router.post("/meeting/book", response_model=BookMeetingResponse)
-async def book_meeting(request: BookMeetingRequest):
-    """
-    预定会议
-
-    Args:
-        request: 预定会议请求
-
-    Returns:
-        预定结果
-    """
-    try:
-        result = await rtsService.create_room(
-            room_id=request.room_id,
-            host_user_id=request.host_user_id,
-            host_user_name=request.host_user_name,
-            room_name=request.room_name,
-            host_device_sn=request.host_device_sn,
-        )
-
-        if result == 0:
-            return BookMeetingResponse(
-                code=200,
-                room_id=request.room_id,
-                room_name=request.room_name or request.room_id,
-                message="会议预定成功"
-            )
-        elif result == 1:
-            return BookMeetingResponse(
-                code=400,
-                room_id=request.room_id,
-                room_name=request.room_name or request.room_id,
-                message="会议号已被占用，预定失败"
-            )
-        elif result == 2:
-            return BookMeetingResponse(
-                code=632,
-                room_id=request.room_id,
-                room_name=request.room_name or request.room_id,
-                message="设备已有房间，预定失败"
-            )
-    except Exception as e:
-        logger.error(f"预定会议失败: {e}")
-        return BookMeetingResponse(
-            code=500,
-            room_id=request.room_id,
-            room_name=request.room_name or request.room_id,
-            message=f"服务器错误: {str(e)}"
-        )
-
-
-# 取消会议
-@meeting_router.post("/meeting/cancel", response_model=CancelMeetingResponse)
-async def cancel_meeting(request: CancelMeetingRequest):
-    """
-    取消会议（只有主持人可以取消，且房间内没有人时才能取消）
-
-    Args:
-        request: 取消会议请求
-
-    Returns:
-        取消结果
-    """
-    try:
-        code, message = await rtsService.cancel_meeting(
-            room_id=request.room_id,
-            user_id=request.user_id,
-        )
-
-        return CancelMeetingResponse(
-            code=code,
-            room_id=request.room_id,
-            message=message
-        )
-    except Exception as e:
-        logger.error(f"取消会议失败: {e}")
-        return CancelMeetingResponse(
-            code=500,
-            room_id=request.room_id,
-            message=f"服务器错误: {str(e)}"
-        )
-
 
 # 查询我的会议
 @meeting_router.post("/meeting/get-my", response_model=GetMyMeetingsResponse)
