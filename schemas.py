@@ -292,7 +292,7 @@ class CancelMeetingResponse(BaseModel):
 # 查询我的会议请求
 class GetMyMeetingsRequest(BaseModel):
     user_id: str
-    role: UserRole = UserRole.HOST  # 0: 访客/普通参会者, 1: 主持人
+    role: Optional[UserRole] = UserRole.HOST  # 0: 访客/普通参会者, 1: 主持人
 
 # 会议简要信息
 class MeetingInfo(BaseModel):
