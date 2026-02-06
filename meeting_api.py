@@ -191,7 +191,7 @@ async def camera_join(request: CameraJoinRequest):
             elif result == 2:
                 return CameraJoinResponse(
                     code=632,
-                    message="设备已有房间"
+                    message="设备已在房间中"
                 )
         # 如果 action_type = 1，直接加入会议
         elif request.action_type == 1:
