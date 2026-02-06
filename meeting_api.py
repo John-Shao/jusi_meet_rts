@@ -53,17 +53,11 @@ async def cancel_meeting(request: CancelMeetingRequest):
 # 查询我的会议
 @meeting_router.post("/meeting/get-my", response_model=GetMyMeetingsResponse)
 async def get_my_meetings(request: GetMyMeetingsRequest):
-    """
-    查询用户作为主持人的所有会议
-
-    Args:
-        request: 查询会议请求
-
-    Returns:
-        会议列表
-    """
     try:
-        meetings_data = await rtsService.get_user_meetings(user_id=request.user_id)
+        meetings_data = await rtsService.get_user_rooms(
+            user_id=request.user_id,
+            role=request.role
+        )
 
         # 转换为MeetingInfo对象
         meetings = [MeetingInfo(**meeting) for meeting in meetings_data]

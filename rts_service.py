@@ -126,7 +126,7 @@ class RtsService:
 
 
     # 查询用户的所有会议
-    async def get_user_meetings(self, user_id: str) -> List[Dict[str, Any]]:
+    async def get_user_rooms(self, user_id: str, role: UserRole) -> List[Dict[str, Any]]:
         meetings = []
         all_room_ids = redis_client.get_all_room_ids()
 
@@ -134,8 +134,19 @@ class RtsService:
             room_data = redis_client.get_room(room_id)
             if room_data:
                 room_state = RoomState.model_validate(room_data)
-                # 只返回该用户作为主持人的会议
-                if room_state.host_user_id == user_id:
+                is_host = room_state.host_user_id == user_id
+                is_participant = redis_client.get_room_user(room_id, user_id) is not None
+
+                # 根据 role 参数过滤
+                should_include = False
+                if role == UserRole.HOST:
+                    # 只返回作为主持人的会议
+                    should_include = is_host
+                elif role == UserRole.VISITOR:
+                    # 只返回作为访客/普通参会者的会议（不是主持人）
+                    should_include = is_participant and not is_host
+
+                if should_include:
                     user_count = redis_client.get_room_user_count(room_id)
                     meetings.append({
                         "room_id": room_state.room_id,
