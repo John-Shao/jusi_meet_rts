@@ -18,6 +18,38 @@ logger = logging.getLogger(__name__)
 
 meeting_router = APIRouter()
 
+# 取消会议
+@meeting_router.post("/meeting/cancel", response_model=CancelMeetingResponse)
+async def cancel_meeting(request: CancelMeetingRequest):
+    """
+    取消会议（只有主持人可以取消，且房间内没有人时才能取消）
+
+    Args:
+        request: 取消会议请求
+
+    Returns:
+        取消结果
+    """
+    try:
+        code, message = await rtsService.cancel_meeting(
+            room_id=request.room_id,
+            user_id=request.user_id,
+        )
+
+        return CancelMeetingResponse(
+            code=code,
+            room_id=request.room_id,
+            message=message
+        )
+    except Exception as e:
+        logger.error(f"取消会议失败: {e}")
+        return CancelMeetingResponse(
+            code=500,
+            room_id=request.room_id,
+            message=f"服务器错误: {str(e)}"
+        )
+
+
 # 查询我的会议
 @meeting_router.post("/meeting/get-my", response_model=GetMyMeetingsResponse)
 async def get_my_meetings(request: GetMyMeetingsRequest):
