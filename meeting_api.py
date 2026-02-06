@@ -54,10 +54,7 @@ async def cancel_meeting(request: CancelMeetingRequest):
 @meeting_router.post("/meeting/get-my", response_model=GetMyMeetingsResponse)
 async def get_my_meetings(request: GetMyMeetingsRequest):
     try:
-        meetings_data = await rtsService.get_user_rooms(
-            user_id=request.user_id,
-            role=request.role
-        )
+        meetings_data = await rtsService.get_my_rooms(request.user_id)
 
         # 转换为MeetingInfo对象
         meetings = [MeetingInfo(**meeting) for meeting in meetings_data]
