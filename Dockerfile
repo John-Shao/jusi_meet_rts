@@ -1,5 +1,4 @@
-# 使用官方 Python 3.12 slim 镜像作为基础镜像
-FROM docker.xuanyuan.run/library/python:3.12.12
+FROM docker.xuanyuan.run/library/python:3.13-slim
 
 # 设置工作目录
 WORKDIR /app
